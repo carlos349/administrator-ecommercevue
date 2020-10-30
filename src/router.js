@@ -9,6 +9,23 @@ export default new Router({
   routes: [
     {
       path: '/',
+      redirect: 'login',
+      component: AuthLayout,
+      children: [
+        {
+          path: '/login',
+          name: 'login',
+          component: () => import(/* webpackChunkName: "demo" */ './views/Login.vue')
+        },
+        {
+          path: '/register',
+          name: 'register',
+          component: () => import(/* webpackChunkName: "demo" */ './views/Register.vue')
+        }
+      ]
+    },
+    {
+      path: '/',
       redirect: 'dashboard',
       component: DashboardLayout,
       children: [
@@ -23,40 +40,27 @@ export default new Router({
         {
           path: '/productos',
           name: 'productos',
-          component: () => import(/* webpackChunkName: "demo" */ './views/productos.vue')
+          component: () => import(/* webpackChunkName: "demo" */ './views/Products.vue')
         },
         {
           path: '/promociones',
           name: 'promociones',
-          component: () => import(/* webpackChunkName: "demo" */ './views/promociones.vue')
+          component: () => import(/* webpackChunkName: "demo" */ './views/Promotions.vue')
         },
         {
           path: '/cotizaciones',
           name: 'cotizaciones',
-          component: () => import(/* webpackChunkName: "demo" */ './views/cotizaciones.vue')
+          component: () => import(/* webpackChunkName: "demo" */ './views/Quotations.vue')
         },
-        
+        {
+          path: '/usuarios',
+          name: 'Usuarios',
+          component: () => import(/* webpackChunkName: "demo" */ './views/Users.vue')
+        },
         {
           path: '/tables',
           name: 'tables',
           component: () => import(/* webpackChunkName: "demo" */ './views/Tables.vue')
-        }
-      ]
-    },
-    {
-      path: '/',
-      redirect: 'login',
-      component: AuthLayout,
-      children: [
-        {
-          path: '/login',
-          name: 'login',
-          component: () => import(/* webpackChunkName: "demo" */ './views/Login.vue')
-        },
-        {
-          path: '/register',
-          name: 'register',
-          component: () => import(/* webpackChunkName: "demo" */ './views/Register.vue')
         }
       ]
     }

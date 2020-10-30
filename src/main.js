@@ -12,7 +12,6 @@ import VueCarousel from 'vue-carousel';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faDollarSign, faEdit, faPercentage, faBoxes } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
- 
 library.add(faDollarSign, faEdit, faPercentage, faBoxes )
  
 Vue.component('font-awesome-icon', FontAwesomeIcon)

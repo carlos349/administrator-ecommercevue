@@ -13,12 +13,10 @@
             path: '/dashboard'
           }"
         /> -->
-
+        <sidebar-item :link="{name: 'Usuarios', icon: 'ni ni-single-02 text-blue', path: '/usuarios'}"/>
         <sidebar-item :link="{name: 'Productos', icon: 'ni ni-bag-17 text-blue', path: '/productos'}"/>
-        <sidebar-item :link="{name: 'Promociones', icon: 'ni ni-image text-orange', path: '/promociones'}"/>
-        <sidebar-item :link="{name: 'cotizaciones', icon: 'ni ni-image text-orange', path: '/cotizaciones'}"/>
-        
-
+        <sidebar-item :link="{name: 'Promociones', icon: 'ni ni-tag text-green', path: '/promociones'}"/>
+        <sidebar-item :link="{name: 'cotizaciones', icon: 'ni ni-collection text-green', path: '/cotizaciones'}"/>
       </template>
     </side-bar>
     <div class="main-content" :data="sidebarBackground">

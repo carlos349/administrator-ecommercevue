@@ -1,13 +1,10 @@
 <template>
     <div>
-        <base-header class="header pb-4 pt-3 pt-lg-5 d-flex align-items-center"
-                     style="min-height: 50px;">
+        <base-header class="header pb-4 pt-3 pt-lg-5 d-flex align-items-center" style="min-height: 50px;">
             <!-- Mask -->
             <span style="background-color:#172b4d !important" class="mask  opacity-7"></span>
             <!-- Header container -->
-            
         </base-header>
-
         <div class="container-fluid mt-5">
             <base-button type="success" v-if="promotions.length < 10" class="mb-3" @click="modals.modal2 = true">Añadir promocion</base-button>
             <a-tooltip v-else placement="right">
@@ -16,7 +13,6 @@
                 </template>
                <base-button type="danger" style="cursor: not-allowed;" class="mb-3">Añadir promocion</base-button> 
             </a-tooltip>
-            
             <modal :show.sync="modals.modal1" modal-classes="modal-lg">
                 <h6 slot="header" class="modal-title" id="modal-title-default">Datos descriptivos de tu producto</h6>
                 <div class="row">
@@ -41,18 +37,14 @@
                         </a-modal>
                     </div>
                     <div class="col-md-5"></div>
-                    </div>
-                        <div class="row">
-                            <div class="col-md-4"><base-input v-model="promotionDataEdit.name" placeholder="Nombre de la promoción"></base-input></div>
-                            <div class="col-md-4"><base-input v-model="promotionDataEdit.bName"  placeholder="Texto del botón"></base-input></div>
-                            <div class="col-md-4"><base-input v-model="promotionDataEdit.url" placeholder="Url del botón"></base-input></div>
-                        </div>
-                        <textarea class="form-control" rows="3" v-model="promotionDataEdit.description" placeholder="Descripción de la promoción"></textarea>
-                        <base-button class="mt-3 mx-auto" v-on:click="editPromotion()" type="default">Editar promoción</base-button>
-                
-                    
-                
-                
+                </div>
+                <div class="row">
+                    <div class="col-md-4"><base-input v-model="promotionDataEdit.name" placeholder="Nombre de la promoción"></base-input></div>
+                    <div class="col-md-4"><base-input v-model="promotionDataEdit.bName"  placeholder="Texto del botón"></base-input></div>
+                    <div class="col-md-4"><base-input v-model="promotionDataEdit.url" placeholder="Url del botón"></base-input></div>
+                </div>
+                <textarea class="form-control" rows="3" v-model="promotionDataEdit.description" placeholder="Descripción de la promoción"></textarea>
+                <base-button class="mt-3 mx-auto mb-2" v-on:click="editPromotion()" type="default">Editar promoción</base-button>
             </modal>
             <modal :show.sync="modals.modal2" modal-classes="modal-lg">
                 <h6 slot="header" class="modal-title" id="modal-title-default">Categorias</h6>
@@ -78,18 +70,14 @@
                         </a-modal>
                     </div>
                     <div class="col-md-5"></div>
-                    </div>
-                        <div class="row">
-                            <div class="col-md-4"><base-input v-model="promotionData.name" placeholder="Nombre de la promoción"></base-input></div>
-                            <div class="col-md-4"><base-input v-model="promotionData.bName"  placeholder="Texto del botón"></base-input></div>
-                            <div class="col-md-4"><base-input v-model="promotionData.url" placeholder="Url del botón"></base-input></div>
-                        </div>
-                        <textarea class="form-control" rows="3" v-model="promotionData.description" placeholder="Descripción de la promoción"></textarea>
-                        <base-button class="mt-3 mx-auto" v-on:click="createPromotion()" type="default">Crear promoción</base-button>
-                    
-                    
-                
-                
+                </div>
+                <div class="row">
+                    <div class="col-md-4"><base-input v-model="promotionData.name" placeholder="Nombre de la promoción"></base-input></div>
+                    <div class="col-md-4"><base-input v-model="promotionData.bName"  placeholder="Texto del botón"></base-input></div>
+                    <div class="col-md-4"><base-input v-model="promotionData.url" placeholder="Url del botón"></base-input></div>
+                </div>
+                <textarea class="form-control" rows="3" v-model="promotionData.description" placeholder="Descripción de la promoción"></textarea>
+                <base-button class="mt-3 mx-auto mb-2" v-on:click="createPromotion()" type="default">Crear promoción</base-button>
             </modal>
             <a-table :columns="columns" :data-source="promotions">
                 <a slot="name" slot-scope="text">{{ text }}</a>
@@ -97,7 +85,7 @@
                 
                 <span slot="action" slot-scope="text, record">
                     <base-button @click="modals.modal1 = true,promotionDataEdit.name=record.name,promotionDataEdit.description=record.description,promotionDataEdit.bName = record.nameButton,promotionDataEdit.img=record.image,promotionDataEdit.url=record.url,promotionDataEdit.id=record._id" type="default">Editar</base-button>
-                    <base-button type="danger">eliminar</base-button>
+                    <base-button type="danger" v-on:click="deletePromotion(record._id)">eliminar</base-button>
                 </span>
             </a-table>
             
@@ -133,7 +121,7 @@ export default {
                 modal1:false,
                 modal2:false
             },
-            promotions:'',
+            promotions:[],
             configHeader: {headers:{"x-database-connect":endPoint.dataBase,"x-access-token":localStorage.userToken}},
             promotionData: {
                 name:'',
@@ -192,7 +180,16 @@ export default {
         }
     },
     beforeCreate(){
-        
+        if (!localStorage.getItem('userToken')) {
+            this.$swal({ 
+                type: 'error',
+                icon: 'error',
+                title: 'URL restringida',
+                showConfirmButton: false,
+                timer: 2000
+            })
+            router.push({name: 'login'})
+		}
     },
     created(){
         this.getPromotions()
@@ -201,8 +198,10 @@ export default {
         getPromotions(){
             axios.get(endPoint.endpointTarget+'/promotions',this.configHeader)
             .then(res => {
-                this.promotions = res.data.promotions
-                console.log(this.promotions)
+                if (res.data.status != 'promotions does exist') {
+                    this.promotions = res.data.promotions
+                    console.log(this.promotions) 
+                }
             })
         },
         handleCancel() {
@@ -264,10 +263,8 @@ export default {
                         description:this.promotionData.description,
                         url:this.promotionData.url,
                         nameButton:this.promotionData.bName,
-                        
                     },this.configHeader)
                     .then(res => {
-
                         if (res.data.status == 'promotion create') {
                            this.$swal({
                                 type: 'success',
@@ -276,13 +273,19 @@ export default {
                                 position: 'top-end',
                                 timer: 3000,
                                 timerProgressBar: true,
-                                title: 'Promoción creada con exito',
+                                title: 'Promoción creada con éxito',
                                 showConfirmButton: false,
                                 didOpen: (toast) => {
                                     toast.addEventListener('mouseenter', Swal.stopTimer)
                                     toast.addEventListener('mouseleave', Swal.resumeTimer)
                                 }
                             })
+                            this.modals.modal2 = false
+                            this.promotionData.name = ''
+                            this.promotionData.description = ''
+                            this.promotionData.url = ''
+                            this.promotionData.bName = ''
+                            this.promotionData.img = []
                             localStorage.setItem('userToken', res.data.token)
                             this.getPromotions() 
                         }
@@ -312,45 +315,91 @@ export default {
         editPromotion(){
             let images = ''
             let validation = true
-                if (this.promotionDataEdit.img[0].status == "error") {
-                    validation = false
-                    this.$swal({
-                        type: 'error',
-                        icon: 'error',
-                        title: 'La imágen no se subio correctamente por favor verifique la imagen resaltada en rojo elimínela y agrégela de nuevo',
-                        showConfirmButton: false,
-                        timer: 1500
-                    })
+            if (this.promotionDataEdit.img[0].status == "error") {
+                validation = false
+                this.$swal({
+                    type: 'error',
+                    icon: 'error',
+                    title: 'La imágen no se subio correctamente por favor verifique la imagen resaltada en rojo elimínela y agrégela de nuevo',
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }
+            if (validation) {
+                if (this.imagesEdits.uid) {
+                    images = this.imagesEdits
                 }
-                if (validation) {
-                    if (this.imagesEdits != []) {
-                        images = this.imagesEdits
-                        console.log(this.imagesEdits)
+                else{
+                    images = this.promotionDataEdit.img
+                }
+                axios.put(endPoint.endpointTarget+'/promotions/'+this.promotionDataEdit.id,{
+                    name:this.promotionDataEdit.name,
+                    image:images,
+                    description:this.promotionDataEdit.description,
+                    url:this.promotionDataEdit.url,
+                    nameButton:this.promotionDataEdit.bName,
+                    
+                },this.configHeader)
+                .then(res => {
+                    if (res.data.status == 'promotion edit') {
+                        this.modals.modal1 = false
+                        this.$swal({
+                            type: 'success',
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            title: 'Promoción editada con éxito',
+                            showConfirmButton: false,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        })
+                        localStorage.setItem('userToken', res.data.token)
+                        this.getPromotions() 
                     }
-                    else{
-                        images = this.promotionDataEdit.img
-                        console.log("no editada")
+                    if (res.data.status == 'promotion exist') {
+                        this.$swal({
+                            type: 'error',
+                            icon: 'error',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            title: 'Esta promocion ya existe',
+                            showConfirmButton: false,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        })
                     }
-                    axios.put(endPoint.endpointTarget+'/promotions/'+this.promotionDataEdit.id,{
-                        name:this.promotionDataEdit.name,
-                        image:images,
-                        description:this.promotionDataEdit.description,
-                        url:this.promotionDataEdit.url,
-                        nameButton:this.promotionDataEdit.bName,
-                        
-                    },this.configHeader)
+                    
+                    
+                })
+            }
+        },
+        deletePromotion(id){
+            this.$swal({
+                icon: 'info',
+                title: '¿Seguro que quieres eliminar esta promoción?',
+                showCancelButton: true,
+                cancelButtonText: 'Cancelar',
+                showConfirmButton: true,
+                confirmButtonText: 'Seguro'
+            }).then(result => {
+                if (result.isConfirmed == true) {
+                    axios.delete(endPoint.endpointTarget+'/promotions/'+id, this.configHeader)
                     .then(res => {
-
-                        if (res.data.status == 'promotion edit') {
-                            this.modals.modal1 = false
-                           this.$swal({
+                        if (res.data.status == 'promotion delete') {
+                            this.$swal({
                                 type: 'success',
                                 icon: 'success',
                                 toast: true,
                                 position: 'top-end',
                                 timer: 3000,
                                 timerProgressBar: true,
-                                title: 'Promoción editada con exito',
+                                title: 'Promoción eliminada con exito',
                                 showConfirmButton: false,
                                 didOpen: (toast) => {
                                     toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -358,15 +407,14 @@ export default {
                                 }
                             })
                             localStorage.setItem('userToken', res.data.token)
-                            this.getPromotions() 
-                        }
-                        if (res.data.status == 'promotion exist') {
+                            this.getPromotions()
+                        }else{
                             this.$swal({
                                 type: 'error',
                                 icon: 'error',
                                 timer: 3000,
                                 timerProgressBar: true,
-                                title: 'Esta promocion ya existe',
+                                title: 'Tenemos problemas al eliminar la promoción.',
                                 showConfirmButton: false,
                                 didOpen: (toast) => {
                                     toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -374,14 +422,9 @@ export default {
                                 }
                             })
                         }
-                        
-                        
                     })
                 }
-                
-            
-
-
+            })
         }
     }
 }
