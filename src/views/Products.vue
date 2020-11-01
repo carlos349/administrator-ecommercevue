@@ -552,7 +552,7 @@ export default {
                 }
             }
             this.filtersProduct.push({})
-            this.filtersProduct.splice(index + 1, 1)
+            this.filtersProduct.splice(this.filtersProduct.length - 1, 1)
             console.log(this.dataProduct)
         },
         removeOptionProduct(name, optName, indexOpt, index){
@@ -569,14 +569,14 @@ export default {
                 }
             }
             this.filtersProduct.push({})
-            this.filtersProduct.splice(index + 1, 1)
+            this.filtersProduct.splice(this.filtersProduct.length - 1, 1)
             console.log(this.dataProduct)
         },
         addFilterProduct(index){
             console.log(index)
             this.filtersProduct[index].valid = true
             this.filtersProduct.push({})
-            this.filtersProduct.splice(index + 1, 1)
+            this.filtersProduct.splice(this.filtersProduct.length - 1, 1)
             this.dataProduct.filters.push({name: this.filtersProduct[index].name, options: []})
             console.log(this.$refs.tableFilters)
         },
@@ -589,7 +589,7 @@ export default {
                 }
             }
             this.filtersProduct.push({})
-            this.filtersProduct.splice(index + 1, 1)
+            this.filtersProduct.splice(this.filtersProduct.length - 1, 1)
             console.log(this.$refs.tableFilters)
         },
         async handlePreview(file) {
@@ -1003,7 +1003,7 @@ button:focus{
     margin-left: 10px;
     color: transparent;
     cursor: pointer;
-    border: solid 1px #000;
+    box-shadow: 0 0 2rem 0 rgba(136, 152, 170, 0.15) !important;
 }
 .colorsSelectds:hover{
     opacity: .6;

@@ -19,20 +19,48 @@
                     <div class="text-center">
                         <base-button type="primary" style="margin-top:-10%;margin-bottom:5%">Detalle de cotización</base-button>
                     </div>
-                        <card shadow>
-                            <dt class="text-center">Datos del cliente</dt>
-                            <div class="row">
-                               <div class="col-md-6 mt-1" v-for="data in quotations[actualQuotation].dataClient" :key="data.id">
-                                    <textarea v-if="data.name == 'description'" v-model="data.data" readonly class="form-control form-control-alternative mt-1" rows="3" placeholder="Write a large text here ..."></textarea>
-                                    <div v-else class="mb-2 w-100">
-                                        <label for="">{{data.name}}</label><br>
-                                        <badge style="font-size:1em !important" class="text-default" type="success">{{data.data}}</badge>
+                    <tabs fill class="flex-column flex-md-row">
+                        <tab-pane>
+                            <span slot="title">
+                                <i class="ni ni-circle-08"></i>
+                                Datos del cliente
+                            </span>
+                                <card type="secondary" shadow
+                                    header-classes="bg-white"
+                                    body-classes=""
+                                    class="border-0 pt-0">
+                                    <dt class="text-center mb-1">Datos del cliente</dt>
+                                    <div class="row">
+                                        <div class="col-md-6 mt-1" v-for="data in quotations[actualQuotation].dataClient" :key="data.id">
+                                            <textarea v-if="data.name == 'description'" v-model="data.data" readonly class="form-control form-control-alternative mt-1" rows="3" placeholder="Write a large text here ..."></textarea>
+                                            <div v-else class="mb-2 w-100">
+                                                <label for="">{{data.name}}</label><br>
+                                                <badge style="font-size:1em !important" class="text-default" type="success">{{data.data}}</badge>
+                                            </div>
+                                        </div> 
                                     </div>
+                                </card>
+                        </tab-pane>
+                        <tab-pane title="Profile">
+                            <span slot="title">
+                                <i class="ni ni-bag-17 mr-2"></i>
+                                Productos
+                            </span>
+                            <div class="row">
+                                <div class="col-md-6 mt-1" v-for="data of quotations[actualQuotation].products" :key="data.id">
+                                    <card type="secondary" shadow
+                                        header-classes="bg-white"
+                                        body-classes=""
+                                        class="border-0 pt-0">
+                                        <img class="w-100" :src="data.image" alt="">
+                                        <h2>{{data.name}}</h2>  
+                                        <p>Cantidad: {{data.qty}}</p>
+                                        <p>Color: <span class="colorProduct">col</span></p>
+                                    </card>
                                 </div> 
                             </div>
-                            <dt class="mt-3 text-center">Productos</dt>  
-                            <badge v-for="data of quotations[actualQuotation].products" :key="data._id" class="mt-1 ml-1 text-default" type="success">{{data.name}}</badge>
-                        </card>
+                        </tab-pane>
+                    </tabs>
                 </card>
                 <base-button class="mt-3 mx-auto mb-3 float-right" type="success" v-on:click="verifyQuotation(quotations[actualQuotation]._id)">Notificar vista</base-button>
             </modal>
@@ -127,6 +155,12 @@ export default {
 }
 </script>
 <style>
-     
-    
+    .colorProduct{
+        width: 20px;
+        height: 20px;
+        background-color: teal;
+        color: transparent;
+        border-radius: 50%;
+        box-shadow: 0 0 2rem 0 rgba(136, 152, 170, 0.15) !important;
+    }
 </style>
