@@ -62,7 +62,9 @@
                         </tab-pane>
                     </tabs>
                 </card>
-                <base-button class="mt-3 mx-auto mb-3 float-right" type="success" v-on:click="verifyQuotation(quotations[actualQuotation]._id)">Notificar vista</base-button>
+                <base-button class="mt-3 mx-auto mb-3 float-right" v-if="quotations[actualQuotation].status == 'pending'" type="success" v-on:click="verifyQuotation(quotations[actualQuotation]._id, 'notify')">Notificar vista</base-button>
+                <base-button v-else-if="quotations[actualQuotation].status == 'viewed'" class="mt-3 mx-auto mb-3 float-right" type="default" v-on:click="verifyQuotation(quotations[actualQuotation]._id, 'finally')">Finalizar</base-button>
+                <base-button v-else class="mt-3 mx-auto mb-3 float-right" disabled type="warning">Finalizada</base-button>
             </modal>
             <a-table :columns="columns" :data-source="quotations">
                 <span slot="quantity" slot-scope="text, record"> {{record.products.length}}</span>
@@ -148,8 +150,52 @@ export default {
             let dateFormat = new Date(date)
             return moment(dateFormat).format('DD-MM-YYYY, h:mm:ss a')
         },
-        verifyQuotation(id){
-            console.log(id)
+        verifyQuotation(id, status){
+            if (status == 'notify') {
+                axios.put(endPoint.endpointTarget+'/quotations/'+id, {
+                    status: 'viewed'
+                }, this.configHeader)
+                .then(res => {
+                    this.getQuotations()
+                    this.$swal({
+                        type: 'success',
+                        icon: 'success',
+                        toast: true,
+                        position: 'top-end',
+                        timer: 3000,
+                        timerProgressBar: true,
+                        title: 'Cliente notificado con éxito',
+                        showConfirmButton: false,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer)
+                            toast.addEventListener('mouseleave', Swal.resumeTimer)
+                        }
+                    })
+                    console.log(this.quotations)
+                })  
+            }else{
+                axios.put(endPoint.endpointTarget+'/quotations/'+id, {
+                    status: 'finished'
+                }, this.configHeader)
+                .then(res => {
+                    this.getQuotations()
+                    this.$swal({
+                        type: 'success',
+                        icon: 'success',
+                        toast: true,
+                        position: 'top-end',
+                        timer: 3000,
+                        timerProgressBar: true,
+                        title: 'Cotización finalizada con éxito',
+                        showConfirmButton: false,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer)
+                            toast.addEventListener('mouseleave', Swal.resumeTimer)
+                        }
+                    })
+                    console.log(this.quotations)
+                })
+            }
         }
     }
 }
