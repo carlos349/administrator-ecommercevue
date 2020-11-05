@@ -31,13 +31,15 @@
                                     class="border-0 pt-0">
                                     <dt class="text-center mb-1">Datos del cliente</dt>
                                     <div class="row">
-                                        <div class="col-md-6 mt-1" v-for="data in quotations[actualQuotation].dataClient" :key="data.id">
-                                            <textarea v-if="data.name == 'description'" v-model="data.data" readonly class="form-control form-control-alternative mt-1" rows="3" placeholder="Write a large text here ..."></textarea>
-                                            <div v-else class="mb-2 w-100">
-                                                <label for="">{{data.name}}</label><br>
-                                                <badge style="font-size:1em !important" class="text-default" type="success">{{data.data}}</badge>
-                                            </div>
-                                        </div> 
+                                        <template v-if="quotations[actualQuotation]">
+                                            <div class="col-md-6 mt-1" v-for="data in quotations[actualQuotation].dataClient" :key="data.id">
+                                                <textarea v-if="data.name == 'description'" v-model="data.data" readonly class="form-control form-control-alternative mt-1" rows="3" placeholder="Write a large text here ..."></textarea>
+                                                <div v-else class="mb-2 w-100">
+                                                    <label for="">{{data.name}}</label><br>
+                                                    <badge style="font-size:1em !important" class="text-default" type="success">{{data.data}}</badge>
+                                                </div>
+                                            </div> 
+                                        </template>
                                     </div>
                                 </card>
                         </tab-pane>
@@ -47,26 +49,30 @@
                                 Productos
                             </span>
                             <div class="row">
-                                <div class="col-md-6 mt-1" v-for="data of quotations[actualQuotation].products" :key="data.id">
-                                    <card type="secondary" shadow
-                                        header-classes="bg-white"
-                                        body-classes=""
-                                        class="border-0 pt-0">
-                                        <img class="w-100" :src="data.image" alt="">
-                                        <h2>{{data.name}}</h2>  
-                                        <p>Cantidad: {{data.qty}}</p>
-                                        <p>Color: <span class="colorProduct">col</span></p>
-                                    </card>
-                                </div> 
+                                <template v-if="quotations[actualQuotation]">
+                                    <div class="col-md-6 mt-1" v-for="data of quotations[actualQuotation].products" :key="data.id">
+                                        <card type="secondary" shadow
+                                            header-classes="bg-white"
+                                            body-classes=""
+                                            class="border-0 pt-0">
+                                            <img class="w-100" :src="data.image" alt="">
+                                            <h2>{{data.name}}</h2>  
+                                            <p>Cantidad: {{data.qty}}</p>
+                                            <p>Color: <span class="colorProduct">col</span></p>
+                                        </card>
+                                    </div> 
+                                </template>
                             </div>
                         </tab-pane>
                     </tabs>
                 </card>
-                <base-button class="mt-3 mx-auto mb-3 float-right" v-if="quotations[actualQuotation].status == 'pending'" type="success" v-on:click="verifyQuotation(quotations[actualQuotation]._id, 'notify')">Notificar vista</base-button>
-                <base-button v-else-if="quotations[actualQuotation].status == 'viewed'" class="mt-3 mx-auto mb-3 float-right" type="default" v-on:click="verifyQuotation(quotations[actualQuotation]._id, 'finally')">Finalizar</base-button>
-                <base-button v-else class="mt-3 mx-auto mb-3 float-right" disabled type="warning">Finalizada</base-button>
+                <template v-if="quotations[actualQuotation]">
+                    <base-button class="mt-3 mx-auto mb-3 float-right" v-if="quotations[actualQuotation].status == 'pending'" type="success" v-on:click="verifyQuotation(quotations[actualQuotation]._id, 'notify')">Notificar vista</base-button>
+                    <base-button v-else-if="quotations[actualQuotation].status == 'viewed'" class="mt-3 mx-auto mb-3 float-right" type="default" v-on:click="verifyQuotation(quotations[actualQuotation]._id, 'finally')">Finalizar</base-button>
+                    <base-button v-else class="mt-3 mx-auto mb-3 float-right" disabled type="warning">Finalizada</base-button>
+                </template>
             </modal>
-            <a-table :columns="columns" :data-source="quotations">
+            <a-table :columns="columns" :data-source="quotations" :scroll="getScreen">
                 <span slot="quantity" slot-scope="text, record"> {{record.products.length}}</span>
                 <span slot="client" slot-scope="text, record"> {{record.dataClient[0].data}} {{record.dataClient[1].data}}</span>
                 <span slot="action" slot-scope="text, record, index">
@@ -92,7 +98,7 @@ export default {
                 modal2:false
             },
             dateView: '',
-            quotations:'',
+            quotations: [],
             configHeader: {headers:{"x-database-connect":endPoint.dataBase,"x-access-token":localStorage.userToken}},
             actualQuotation:0,
             columns: [
@@ -142,8 +148,10 @@ export default {
         getQuotations(){
             axios.get(endPoint.endpointTarget+'/quotations',this.configHeader)
             .then(res => {
-                this.quotations = res.data.quotations
-                console.log(this.quotations)
+                if (res.data.status == 'ok') {
+                    this.quotations = res.data.quotations
+                    console.log(this.quotations)
+                }
             })
         },
         formatDate(date) {
@@ -196,6 +204,11 @@ export default {
                     console.log(this.quotations)
                 })
             }
+        }
+    },
+    computed: {
+        getScreen: () => {
+            return screen.width < 780 ? { x: 'calc(700px + 50%)', y: 240 } : { y: 240 }
         }
     }
 }

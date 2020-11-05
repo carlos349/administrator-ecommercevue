@@ -9,18 +9,24 @@
         </base-header>
 
         <div class="container-fluid mt-5">
-            <base-button type="default" @click="modals.modal2 = true">Categorias</base-button>
-            <base-button type="default" @click="modals.modal4 = true">Filtros</base-button>
-            <base-button type="success" @click="modals.modal3 = true">Agregar producto</base-button>
+            <base-button class="mt-1" type="default" @click="modals.modal2 = true">Categorias</base-button>
+            <base-button class="mt-1" type="default" @click="modals.modal4 = true">Filtros</base-button>
+            <base-button class="mt-1" type="success" @click="modals.modal3 = true">Agregar producto</base-button>
+            <a-modal :visible="previewVisible" :footer="null" @cancel="handleCancel">
+                <img alt="example" style="width: 100%" :src="previewImage" />
+            </a-modal>
+            <a-modal :visible="previewVisibleEdit" :footer="null" @cancel="handleCancelEdit">
+                <img alt="example" style="width: 100%" :src="previewImageEdit" />
+            </a-modal>
             <modal :show.sync="modals.modal1" v-if="products.length > 0" modal-classes="modal-lg">
                 <h6 slot="header" class="modal-title" id="modal-title-default">Edita tu producto</h6>
                 <div style="height: 110px;" class="ml-5"> 
                     <a-upload
                     class="mx-auto uploaderProduct"
-                    action="http://localhost:3200/products/uploadImage"
+                    :action="uploadTarget+'/products/uploadImage'"
                     list-type="picture-card"
                     :file-list="products[actualProduct].images"
-                    @preview="handlePreview"
+                    @preview="handlePreviewEdit"
                     @change="editImage">
                         <div v-if="products[actualProduct].images.length < 6" >
                             <a-icon type="plus" />
@@ -103,10 +109,13 @@
             </modal>
             <modal :show.sync="modals.modal4" modal-classes="modal-md">
                 <h4 slot="header" class="modal-title" id="modal-title-default">Filtros</h4>
-                <div class="row mx-auto">
+                <div v-if="filters.length >= 3">
+                    <h3 class="ml-2">Ha llegado al límite de filtros</h3>
+                </div>
+                <div v-else class="row mx-auto">
                     <a-input class="w-75 mr-3 mb-2" v-model="filterAddInput" placeholder="Nombre del filtro" size="large"/>
                     <base-button size="sm" class="mb-2" type="success" v-on:click="addFilter">Agregar</base-button> 
-                </div>   
+                </div> 
                 <a-table bordered :data-source="filters" :columns="columnsCategory">
                     <template slot="operation" slot-scope="text, record">
                         <a-tooltip placement="left">
@@ -129,7 +138,7 @@
                 <div style="height: 110px;" class="ml-5">
                     <a-upload
                     class="mx-auto uploaderProduct"
-                    action="http://localhost:3200/products/uploadImage"
+                    :action="uploadTarget+'/products/uploadImage'"
                     list-type="picture-card"
                     :file-list="dataProduct.imagesArray"
                     @preview="handlePreview"
@@ -159,12 +168,12 @@
                         </a-select>
                     </div>
                     <div class="col-md-2">
-                        <base-button class="w-100" v-on:click="modals.modal6 = true" type="success">
+                        <base-button class="mt-1 w-100" v-on:click="modals.modal3 = false ,modals.modal6 = true" type="success">
                             Filtros
                         </base-button>
                     </div>
                     <div class="col-md-2">
-                        <base-button class="ml-2 w-100" v-on:click="modals.modal7 = true" type="success">
+                        <base-button class="mt-1 w-100" v-on:click="modals.modal3 = false ,modals.modal7 = true" type="success">
                             Colores
                         </base-button>
                     </div>
@@ -191,7 +200,7 @@
                             addon-right-icon="fas fa-percentage">
                         </base-input>
                     </div>
-                    <div class="col-md-3 mt-1">
+                    <div class="col-md-3 mt-1 mb-1">
                         <base-button v-on:click="dataProduct.freeShiping = false" v-if="dataProduct.freeShiping" size="sm" type="success">Envio gratis activado</base-button>
                         <base-button v-on:click="dataProduct.freeShiping = true" v-else size="sm" type="danger">Envio gratis desactivado</base-button>
                     </div>
@@ -199,7 +208,7 @@
                 <textarea class="form-control" rows="3" v-model="dataProduct.description" placeholder="Descripción del producto"></textarea>
                 <template slot="footer">
                     <base-button type="success" v-on:click="newProductData">Agregar</base-button>
-                    <base-input class="w-75 mt-4" style="margin-right:10em;" v-model="dataProduct.dataAdd" placeholder="Agregar dato descriptivo"></base-input>
+                    <base-input class="w-75 mt-4" v-model="dataProduct.dataAdd" placeholder="Agregar dato descriptivo"></base-input>
                     <base-button v-on:click="addProduct()" type="primary">Crear</base-button>
                 </template>
                 <a-table class="mt-1" bordered :data-source="dataProduct.data" :columns="columns">
@@ -211,8 +220,8 @@
                     </template>
                 </a-table>
             </modal>
-            <modal :show.sync="modals.modal6" modal-classes="modal-md">
-                <h4 slot="header" class="modal-title" id="modal-title-default">Filtros</h4>
+            <a-modal :visible="modals.modal6" :footer="null" @cancel="handleCancelFilter">
+                <h4>Filtros</h4>
                 <div class="w-100">
                     <a-table ref="tableFilters" bordered :data-source="filtersProduct" :columns="columnsFilters">
                         <template slot="operation" slot-scope="text, record, index">
@@ -242,9 +251,9 @@
                         </template>
                     </a-table>
                 </div>
-            </modal>
-            <modal :show.sync="modals.modal7" modal-classes="modal-md">
-                <h4 slot="header" class="modal-title" id="modal-title-default">Colores</h4>
+            </a-modal>
+            <a-modal :visible="modals.modal7" :footer="null" @cancel="handleCancelColors">
+                <h4>Colores</h4>
                 <div class="row mb-2 mt-2">
                     <div class="col-md-6">
                         <color-picker
@@ -259,11 +268,12 @@
                         Seleccionar color</base-button>
                     </div>
                     <div class="col-md-6 row">
-                        <h3 class="ml-2">Colores selecionados</h3>
-                        <span v-for="(color, index) of dataProduct.colors" :key="color" class="colorsSelectds col-md-2 mb-0" :style="'background-color:'+color" v-on:click="removeColor(index)">coll</span>
+                        <h3 class="ml-2 col-12">Colores selecionados</h3>
+                        
+                        <span v-for="(color, index) of dataProduct.colors" :key="color" class="colorsSelectds col-md-2 mb-0" :style="'background-color:'+color" v-on:click="removeColor(index)">col</span>
                     </div>
                 </div>
-            </modal>
+            </a-modal>
             <modal :show.sync="modals.modal5" modal-classes="modal-md" :showClose="false">
                 <h4 slot="header" class="modal-title" id="modal-title-default">Filtros</h4>
                 <div class="row mx-auto">
@@ -287,7 +297,7 @@
                 :columns="columnsProducts"
                 :data-source="products"
                 :pagination="{ pageSize: 20 }"
-                :scroll="{ y: 400 }">
+                :scroll="getScreen">
                     <template slot="accion" slot-scope="text, record, index">
                         <div class="row">
                            <a-tooltip placement="bottom">
@@ -298,13 +308,19 @@
                             </a-tooltip>
                             <a-tooltip placement="left">
                                 <template slot="title">
-                                <span>Activar / Desactivar producto</span>
+                                    <span v-if="record.active">Activado</span>
+                                    <span v-else>Desactivado</span>
                                 </template>
                                 <base-button size="sm" v-if="record.active" @click="changeActive(index)" type="success"><i class="ni ni-check-bold"></i></base-button>
-                                <base-button size="sm" v-else @click="changeActive(index)" type="danger"><i class="ni ni-fat-remove"></i></base-button>
+                                <base-button size="sm" v-else @click="changeActive(index)" type="warning"><i class="ni ni-fat-remove"></i></base-button>
+                            </a-tooltip> 
+                            <a-tooltip placement="left">
+                                <template slot="title">
+                                    <span>Eliminar</span>
+                                </template>
+                                <base-button size="sm" @click="deleteProduct(record._id)" type="danger"><i class="ni ni-fat-remove"></i></base-button>
                             </a-tooltip> 
                         </div>
-                        
                     </template>
                     <template slot="price" slot-scope="text">
                         $ {{formatPrice(text)}}
@@ -449,13 +465,11 @@ export default {
             columnsProducts: [
                 {
                     title: 'Nombre del producto',
-                    dataIndex: 'name',
-                    width: 350,
+                    dataIndex: 'name'
                 },
                 {
                     title: 'Categoria',
-                    dataIndex: 'category',
-                    width: 220,
+                    dataIndex: 'category'
                 },
                 {
                     title: 'Precio',
@@ -468,13 +482,15 @@ export default {
                 },
                 {
                     title: 'Acciones',
-                    scopedSlots: { customRender: 'accion' },
-                    width: 130
+                    scopedSlots: { customRender: 'accion' }
                 },
             ],
             previewVisible: false,
             previewImage: '',
-            filtersProduct: []
+            previewVisibleEdit: false,
+            previewImageEdit: '',
+            filtersProduct: [],
+            uploadTarget: endPoint.endpointTarget
         }
     },
     beforeCreate(){
@@ -523,6 +539,15 @@ export default {
         },
         handleCancel() {
             this.previewVisible = false;
+            this.modals.modal3 = true
+        },
+        handleCancelEdit() {
+            this.previewVisibleEdit = false;
+            this.modals.modal1 = true
+        },
+        handleCancelColors(){
+            this.modals.modal7 = false;
+            this.modals.modal3 = true
         },
         changeColor(color) {
             this.color = color
@@ -572,6 +597,10 @@ export default {
             this.filtersProduct.splice(this.filtersProduct.length - 1, 1)
             console.log(this.dataProduct)
         },
+        handleCancelFilter(){
+            this.modals.modal6 = false
+            this.modals.modal3 = true
+        },
         addFilterProduct(index){
             console.log(index)
             this.filtersProduct[index].valid = true
@@ -593,11 +622,22 @@ export default {
             console.log(this.$refs.tableFilters)
         },
         async handlePreview(file) {
+            console.log(file)
             if (!file.url && !file.preview) {
                 file.preview = await getBase64(file.originFileObj);
             }
             this.previewImage = file.url || file.preview;
             this.previewVisible = true;
+            this.modals.modal3 = false
+        },
+        async handlePreviewEdit(file) {
+            console.log(file)
+            if (!file.url && !file.preview) {
+                file.preview = await getBase64(file.originFileObj);
+            }
+            this.previewImageEdit = file.url || file.preview;
+            this.previewVisibleEdit = true;
+            this.modals.modal1 = false
         },
         addNewImage({ fileList }) {
             this.dataProduct.imagesArray = fileList;
@@ -634,7 +674,7 @@ export default {
                         position: 'top-end',
                         timer: 3000,
                         timerProgressBar: true,
-                        title: 'Filtro eliminado con exito',
+                        title: 'Filtro eliminado con éxito',
                         showConfirmButton: false,
                         didOpen: (toast) => {
                             toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -667,7 +707,7 @@ export default {
                         position: 'top-end',
                         timer: 3000,
                         timerProgressBar: true,
-                        title: 'Filtro editado con exito',
+                        title: 'Filtro editado con éxito',
                         showConfirmButton: false,
                         didOpen: (toast) => {
                             toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -704,7 +744,7 @@ export default {
                         position: 'top-end',
                         timer: 3000,
                         timerProgressBar: true,
-                        title: 'Filtro creado con exito',
+                        title: 'Filtro creado con éxito',
                         showConfirmButton: false,
                         didOpen: (toast) => {
                             toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -915,7 +955,7 @@ export default {
                         position: 'top-end',
                         timer: 3000,
                         timerProgressBar: true,
-                        title: 'El producto fue editado con exito',
+                        title: 'El producto fue editado con éxito',
                         showConfirmButton: false,
                         didOpen: (toast) => {
                             toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -934,7 +974,7 @@ export default {
             console.log("aja?")
             axios.get(endPoint.endpointTarget+'/products/changeActive/'+this.products[i]._id, this.configHeader)
             .then(res => {
-                this.statusEdit[i].status = true
+                this.products[i].active = res.data.status
                 this.activeDisabled = false
                 localStorage.setItem('userToken', res.data.token)
                 this.getProduct()
@@ -949,11 +989,36 @@ export default {
                 this.dataProduct.valid = true
             }
         },
-        deleteProduct(i){
-            axios.delete(endPoint.endpointTarget+'/products/'+this.products[i]._id,this.configHeader)
-            .then(res => {
-                localStorage.setItem('userToken', res.data.token)
-                this.getProduct()
+        deleteProduct(id){
+            this.$swal({
+                icon: 'info',
+                title: '¿Seguro que quieres eliminar esta promoción?',
+                showCancelButton: true,
+                cancelButtonText: 'Cancelar',
+                showConfirmButton: true,
+                confirmButtonText: 'Seguro'
+            }).then(result => {
+                if (result.isConfirmed == true) {
+                    axios.delete(endPoint.endpointTarget+'/products/'+id, this.configHeader)
+                    .then(res => {
+                        this.$swal({
+                            type: 'success',
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            title: 'El producto fue eliminado con éxito',
+                            showConfirmButton: false,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        })
+                        localStorage.setItem('userToken', res.data.token)
+                        this.getProduct()
+                    })
+                }
             })
         },
         formatPrice(value) {
@@ -961,6 +1026,11 @@ export default {
             return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
         },
         
+    },
+    computed: {
+        getScreen: () => {
+            return screen.width < 780 ? { x: 'calc(700px + 50%)', y: 240 } : { y: 240 }
+        }
     }
 }
 </script>
@@ -998,12 +1068,12 @@ button:focus{
 }
 .colorsSelectds{
     width: 80px;
-    height: 30px !important;
-    border-radius: 50%;
+    height: 35px !important;
+    border-radius: 48%;
     margin-left: 10px;
     color: transparent;
     cursor: pointer;
-    box-shadow: 0 0 2rem 0 rgba(136, 152, 170, 0.15) !important;
+    box-shadow: 0 0 2rem 0 rgba(136, 152, 170, 0.9) !important;
 }
 .colorsSelectds:hover{
     opacity: .6;
