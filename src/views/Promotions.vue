@@ -484,6 +484,10 @@ export default {
                         this.promotionData.img = []
                         localStorage.setItem('userToken', res.data.token)
                         this.getPromotions() 
+                        axios.get(endPoint.endpointTarget+'/mails/mailPromotions/'+res.data.id, this.configHeader)
+                        .then(res => {
+                            console.log(res)
+                        })
                     }
                     if (res.data.status == 'promotion exist') {
                         this.$swal({
