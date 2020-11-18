@@ -9,18 +9,259 @@
         </base-header>
 
         <div class="container-fluid mt-5">
-            <base-button type="default" @click="modals.modal2 = true">Categorias</base-button>
-            <base-button type="default" @click="modals.modal4 = true">Filtros</base-button>
-            <base-button type="success" @click="modals.modal3 = true">Agregar producto</base-button>
+            <base-button class="mt-1" type="default" @click="modals.modal2 = true">Categorias</base-button>
+            <base-button class="mt-1" type="default" @click="modals.modal4 = true">Filtros</base-button>
+            <base-button class="mt-1" type="success" @click="modals.modal3 = true">Agregar producto</base-button>
+            <a-modal :visible="previewVisible" :footer="null" @cancel="handleCancel">
+                <img alt="example" style="width: 100%" :src="previewImage" />
+            </a-modal>
+            <a-modal :visible="previewVisibleEdit" :footer="null" @cancel="handleCancelEdit">
+                <img alt="example" style="width: 100%" :src="previewImageEdit" />
+            </a-modal>
+            <modal :show.sync="modals.modal2" modal-classes="modal-md">
+                <h6 slot="header" class="modal-title" id="modal-title-default">Categorias</h6>
+                <div class="row">
+                    <a-input class="w-75 mx-auto mb-2" v-model="categoryAddInput" placeholder="Nombre de la categoria" size="large"/>
+                    <base-button size="sm" class="mb-2" type="success" v-on:click="addCategory">Agregar</base-button> 
+                </div> 
+                <a-table bordered :data-source="categories" :columns="columnsCategory">
+                    <template slot="operation" slot-scope="text, record">
+                        <base-button v-on:click="categoryDelete(record._id)" class="mx-auto" type="danger">Eliminar</base-button>
+                    </template>
+                </a-table>
+            </modal>
+            <modal :show.sync="modals.modal4" modal-classes="modal-md">
+                <h4 slot="header" class="modal-title" id="modal-title-default">Filtros</h4>
+                <div v-if="filters.length >= 3">
+                    <h3 class="ml-2">Ha llegado al límite de filtros</h3>
+                </div>
+                <div v-else class="row mx-auto">
+                    <a-input class="w-75 mr-3 mb-2" v-model="filterAddInput" placeholder="Nombre del filtro" size="large"/>
+                    <base-button size="sm" class="mb-2" type="success" v-on:click="addFilter">Agregar</base-button> 
+                </div> 
+                <a-table bordered :data-source="filters" :columns="columnsCategory">
+                    <template slot="operation" slot-scope="text, record">
+                        <a-tooltip placement="left">
+                            <template slot="title">
+                                <span>Eliminar</span>
+                            </template>
+                            <base-button size="sm" v-on:click="filterDelete(record._id)" class="mr-2" type="danger"><i class="ni ni-fat-remove"></i></base-button>
+                        </a-tooltip>
+                        <a-tooltip placement="right">
+                            <template slot="title">
+                                <span>Editar</span>
+                            </template>
+                            <base-button size="sm" v-on:click="modals.modal5 = true, dataOptions = record" class="mx-auto" type="success"><i class="ni ni-ruler-pencil"></i></base-button>
+                        </a-tooltip>
+                    </template>
+                </a-table>
+            </modal>
+            <modal :show.sync="modals.modal3" modal-classes="modal-lg">
+                <h6 slot="header" class="modal-title" id="modal-title-default">Crear nuevo producto</h6>
+                <div style="height: 110px;" class="ml-5">
+                    <a-upload
+                    class="mx-auto uploaderProduct"
+                    :action="uploadTarget+'/products/uploadImage'"
+                    list-type="picture-card"
+                    :file-list="dataProduct.imagesArray"
+                    @preview="handlePreview"
+                    @change="addNewImage"
+                    >
+                        <div v-if="dataProduct.imagesArray.length < 6">
+                            <a-icon type="plus" />
+                            <div class="ant-upload-text">
+                            Agregar imagen
+                            </div>
+                        </div>
+                    </a-upload>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <base-input 
+                            placeholder="Nombre del producto" 
+                            v-model="dataProduct.name"
+                            addon-left-icon="fas fa-edit">
+                        </base-input>
+                    </div>
+                    <div class="col-md-4">
+                        <a-select v-model="dataProduct.category" class="w-100 mt-1" style="height:40px;">
+                            <a-select-option v-for="category in categories" :key="category._id" :value="category.name">
+                                {{category.name}}
+                            </a-select-option>
+                        </a-select>
+                    </div>
+                    <div class="col-md-2">
+                        <base-button class="mt-1 w-100" v-on:click="modals.modal3 = false ,modals.modal6 = true" type="success">
+                            Filtros
+                        </base-button>
+                    </div>
+                    <div class="col-md-2">
+                        <base-button class="mt-1 w-100" v-on:click="modals.modal3 = false ,modals.modal7 = true" type="success">
+                            Colores
+                        </base-button>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-3">
+                        <base-input 
+                            placeholder="Precio" 
+                            v-model="dataProduct.price"
+                            addon-left-icon="fas fa-dollar-sign">
+                        </base-input>
+                    </div>
+                    <div class="col-md-3">
+                        <base-input 
+                            placeholder="Cantidad" 
+                            v-model="dataProduct.quantify"
+                            addon-right-icon="fas fa-boxes">
+                        </base-input> 
+                    </div>
+                    <div class="col-md-3">
+                        <base-input 
+                            placeholder="Descuento"
+                            v-model="dataProduct.discount"
+                            addon-right-icon="fas fa-percentage">
+                        </base-input>
+                    </div>
+                    <div class="col-md-3 mt-1 mb-1">
+                        <base-button v-on:click="dataProduct.freeShiping = false" v-if="dataProduct.freeShiping" size="sm" type="success">Envio gratis activado</base-button>
+                        <base-button v-on:click="dataProduct.freeShiping = true" v-else size="sm" type="danger">Envio gratis desactivado</base-button>
+                    </div>
+                </div>
+                <textarea class="form-control" rows="3" v-model="dataProduct.description" placeholder="Descripción del producto"></textarea>
+                <template slot="footer">
+                    <base-button type="success" v-on:click="newProductData">Agregar</base-button>
+                    <base-input class="w-75 mt-4" v-model="dataProduct.dataAdd" placeholder="Agregar dato descriptivo"></base-input>
+                    <base-button v-on:click="addProduct()" type="primary">Crear</base-button>
+                </template>
+                <a-table class="mt-1" bordered :data-source="dataProduct.data" :columns="columns">
+                    <template slot="dato" slot-scope="text, record">
+                        <a-input v-model="record.data" placeholder="Dato del producto" />
+                    </template>
+                    <template slot="operation" slot-scope="text, record, index">
+                        <base-button v-on:click="newProductDataDelete(index)" type="danger">Eliminar</base-button>
+                    </template>
+                </a-table>
+            </modal>
+            <a-modal :visible="modals.modal6" :footer="null" @cancel="handleCancelFilter">
+                <h4>Filtros</h4>
+                <div class="w-100">
+                    <a-table ref="tableFilters" bordered :data-source="filtersProduct" :columns="columnsFilters">
+                        <template slot="operation" slot-scope="text, record, index">
+                            <a-tooltip placement="left">
+                                <template slot="title">
+                                    <span>Activar</span>
+                                </template>
+                                <base-button size="sm" v-if="record.valid" v-on:click="removeFilterProduct(index)" type="success"><i class="ni ni-check-bold"></i></base-button>
+                                <base-button size="sm" v-else v-on:click="addFilterProduct(index)" type="danger"><i class="ni ni-fat-remove"></i></base-button>
+                            </a-tooltip>
+                        </template>
+                        <template slot="selectOptions" slot-scope="text, record, index">
+                            <template v-for="(options, indexOpt) of record.options">
+                                <a-tooltip v-if="record.valid" :key="options.name" placement="top">
+                                    <template slot="title">
+                                        <span v-if="options.active">Quitar opción</span>
+                                        <span v-else>Agregar opción</span>
+                                    </template>
+                                    <badge v-if="options.active" style="font-size:1em !important;cursor:pointer;" class="text-default mt-1 mr-2 mb-2" type="success">
+                                        <span v-on:click="removeOptionProduct(record.name, options.name, indexOpt, index)">{{options.name}}</span>
+                                    </badge>
+                                    <badge v-else style="font-size:1em !important;cursor:pointer;" class="text-default mt-1 mr-2 mb-2" type="danger">
+                                        <span v-on:click="addOptionProduct(record.name, options.name, indexOpt, index)">{{options.name}}</span>
+                                    </badge>
+                                </a-tooltip>
+                            </template>
+                        </template>
+                    </a-table>
+                </div>
+            </a-modal>
+            <a-modal :visible="modals.modal9" :footer="null" @cancel="handleCancelFilterEdit">
+                <h4>Filtros</h4>
+                <div class="w-100">
+                    <a-table ref="tableFilters" bordered :data-source="filtersProductEdit" :columns="columnsFilters">
+                        <template slot="operation" slot-scope="text, record, index">
+                            <a-tooltip placement="left">
+                                <template slot="title">
+                                    <span>Activar</span>
+                                </template>
+                                <base-button size="sm" v-if="record.valid" v-on:click="removeFilterProductEdit(index)" type="success"><i class="ni ni-check-bold"></i></base-button>
+                                <base-button size="sm" v-else v-on:click="addFilterProductEdit(index)" type="danger"><i class="ni ni-fat-remove"></i></base-button>
+                            </a-tooltip>
+                        </template>
+                        <template slot="selectOptions" slot-scope="text, record, index">
+                            <template v-for="(options, indexOpt) of record.options">
+                                <a-tooltip v-if="record.valid" :key="options.name" placement="top">
+                                    <template slot="title">
+                                        <span v-if="options.active">Quitar opción</span>
+                                        <span v-else>Agregar opción</span>
+                                    </template>
+                                    <badge v-if="options.active" style="font-size:1em !important;cursor:pointer;" class="text-default mt-1 mr-2 mb-2" type="success">
+                                        <span v-on:click="removeOptionProductEdit(record.name, options.name, indexOpt, index)">{{options.name}}</span>
+                                    </badge>
+                                    <badge v-else style="font-size:1em !important;cursor:pointer;" class="text-default mt-1 mr-2 mb-2" type="danger">
+                                        <span v-on:click="addOptionProductEdit(record.name, options.name, indexOpt, index)">{{options.name}}</span>
+                                    </badge>
+                                </a-tooltip>
+                            </template>
+                        </template>
+                    </a-table>
+                </div>
+            </a-modal>
+            <a-modal :visible="modals.modal7" :footer="null" @cancel="handleCancelColors">
+                <h4>Colores</h4>
+                <div class="row mb-2 mt-2">
+                    <div class="col-md-6">
+                        <color-picker
+                            :color="color"
+                            :sucker-hide="false"
+                            :sucker-canvas="suckerCanvas"
+                            :sucker-area="suckerArea"
+                            @changeColor="changeColor"
+                            @openSucker="openSucker"
+                        />
+                        <base-button class="ml-2" type="success" v-on:click="onColorSelect()">
+                        Seleccionar color</base-button>
+                    </div>
+                    <div class="col-md-6 row">
+                        <h3 class="ml-2 col-12">Colores selecionados</h3>
+                        
+                        <span v-for="(color, index) of dataProduct.colors" :key="color" class="colorsSelectds col-md-2 mb-0" :style="'background-color:'+color" v-on:click="removeColor(index)">col</span>
+                    </div>
+                </div>
+            </a-modal>
+            <a-modal :visible="modals.modal8" :footer="null" @cancel="handleCancelColorsEdit">
+                <h4>Colores</h4>
+                <div class="row mb-2 mt-2">
+                    <div class="col-md-6">
+                        <color-picker
+                            :color="color"
+                            :sucker-hide="false"
+                            :sucker-canvas="suckerCanvas"
+                            :sucker-area="suckerArea"
+                            @changeColor="changeColor"
+                            @openSucker="openSucker"
+                        />
+                        <base-button class="ml-2" type="success" v-on:click="onColorSelectEdit()">
+                        Seleccionar color</base-button>
+                    </div>
+                    <div class="col-md-6 row">
+                        <h3 class="ml-2 col-12">Colores selecionados</h3>
+                        
+                        <template v-if="products[actualProduct]">
+                            <span v-for="(color, index) of products[actualProduct].colors" :key="color" class="colorsSelectds col-md-2 mb-0" :style="'background-color:'+color" v-on:click="removeColorEdit(index)">col</span>
+                        </template>
+                    </div>
+                </div>
+            </a-modal>
             <modal :show.sync="modals.modal1" v-if="products.length > 0" modal-classes="modal-lg">
                 <h6 slot="header" class="modal-title" id="modal-title-default">Edita tu producto</h6>
                 <div style="height: 110px;" class="ml-5"> 
                     <a-upload
                     class="mx-auto uploaderProduct"
-                    action="http://localhost:3200/products/uploadImage"
+                    :action="uploadTarget+'/products/uploadImage'"
                     list-type="picture-card"
                     :file-list="products[actualProduct].images"
-                    @preview="handlePreview"
+                    @preview="handlePreviewEdit"
                     @change="editImage">
                         <div v-if="products[actualProduct].images.length < 6" >
                             <a-icon type="plus" />
@@ -31,19 +272,31 @@
                     </a-upload>
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <base-input 
                             placeholder="Nombre del producto" 
                             v-model="products[actualProduct].name"
                             addon-left-icon="fas fa-edit">
                         </base-input>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <a-select v-model="products[actualProduct].category" class="w-100 mt-1" >
                             <a-select-option v-for="category in categories" :key="category._id" :value="category.name">
                                 {{category.name}}
                             </a-select-option>
                         </a-select>                        
+                    </div>
+                    <div class="col-md-2">
+                        <template v-if="products[actualProduct]">
+                            <base-button class="mt-1 w-100" v-on:click="setFilters(products[actualProduct].filters)" type="success">
+                                Filtros
+                            </base-button>
+                        </template>
+                    </div>
+                    <div class="col-md-2">
+                        <base-button class="mt-1 w-100" v-on:click="modals.modal1 = false, modals.modal8 = true" type="success">
+                            Colores
+                        </base-button>
                     </div>
                 </div>
                 <div class="row mt-2">
@@ -74,13 +327,12 @@
                     </div>
                 </div>
                 <textarea class="form-control" rows="3" v-model="products[actualProduct].description" placeholder="Descripción del producto"></textarea>
-                <a-table class="mt-2" v-if="products.length > 0" bordered :data-source="products[actualProduct].data" :pagination="{ pageSize: 20 }"
-                    :scroll="{ y: 160 }" :columns="columns">
+                <a-table class="mt-2" v-if="products.length > 0" bordered :data-source="products[actualProduct].data" :pagination="{ pageSize: 20 }" :scroll="{ y: 160 }" :columns="columns">
                     <template slot="dato" slot-scope="text, record">
-                        <a-input v-model="record.data" placeholder="Dato del producto" />
+                        <a-input v-model="record.data" placeholder="Dato del producto"/>
                     </template>
-                    <template slot="operation" slot-scope="text, record">
-                        <base-button v-on:click="editProductDataDelete(record.id)" size="sm" type="danger">Eliminar</base-button>
+                    <template slot="operation" slot-scope="text, record, index">
+                        <base-button v-on:click="editProductDataDelete(index)" size="sm" type="danger">Eliminar</base-button>
                     </template>
                 </a-table>
                 <template slot="footer">
@@ -88,181 +340,6 @@
                     <base-input class="w-100 mt-4" style="margin-right:10em;" v-model="descripcionProductoEdit" placeholder="Agregar dato descriptivo"></base-input>
                     <base-button v-on:click="editProduct(actualProduct)" type="primary">Editar</base-button>
                 </template>
-            </modal>
-            <modal :show.sync="modals.modal2" modal-classes="modal-md">
-                <h6 slot="header" class="modal-title" id="modal-title-default">Categorias</h6>
-                <div class="row">
-                    <a-input class="w-75 mx-auto mb-2" v-model="categoryAddInput" placeholder="Nombre de la categoria" size="large"/>
-                    <base-button size="sm" class="mb-2" type="success" v-on:click="addCategory">Agregar</base-button> 
-                </div> 
-                <a-table bordered :data-source="categories" :columns="columnsCategory">
-                    <template slot="operation" slot-scope="text, record">
-                        <base-button v-on:click="categoryDelete(record._id)" class="mx-auto" type="danger">Eliminar</base-button>
-                    </template>
-                </a-table>
-            </modal>
-            <modal :show.sync="modals.modal4" modal-classes="modal-md">
-                <h4 slot="header" class="modal-title" id="modal-title-default">Filtros</h4>
-                <div class="row mx-auto">
-                    <a-input class="w-75 mr-3 mb-2" v-model="filterAddInput" placeholder="Nombre del filtro" size="large"/>
-                    <base-button size="sm" class="mb-2" type="success" v-on:click="addFilter">Agregar</base-button> 
-                </div>   
-                <a-table bordered :data-source="filters" :columns="columnsCategory">
-                    <template slot="operation" slot-scope="text, record">
-                        <a-tooltip placement="left">
-                            <template slot="title">
-                                <span>Eliminar</span>
-                            </template>
-                            <base-button size="sm" v-on:click="filterDelete(record._id)" class="mr-2" type="danger"><i class="ni ni-fat-remove"></i></base-button>
-                        </a-tooltip>
-                        <a-tooltip placement="right">
-                            <template slot="title">
-                                <span>Editar</span>
-                            </template>
-                            <base-button size="sm" v-on:click="modals.modal5 = true, dataOptions = record" class="mx-auto" type="success"><i class="ni ni-ruler-pencil"></i></base-button>
-                        </a-tooltip>
-                    </template>
-                </a-table>
-            </modal>
-            <modal :show.sync="modals.modal3" modal-classes="modal-lg">
-                <h6 slot="header" class="modal-title" id="modal-title-default">Crear nuevo producto</h6>
-                <div style="height: 110px;" class="ml-5">
-                    <a-upload
-                    class="mx-auto uploaderProduct"
-                    action="http://localhost:3200/products/uploadImage"
-                    list-type="picture-card"
-                    :file-list="dataProduct.imagesArray"
-                    @preview="handlePreview"
-                    @change="addNewImage"
-                    >
-                        <div v-if="dataProduct.imagesArray.length < 6">
-                            <a-icon type="plus" />
-                            <div class="ant-upload-text">
-                            Agregar imagen
-                            </div>
-                        </div>
-                    </a-upload>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <base-input 
-                            placeholder="Nombre del producto" 
-                            v-model="dataProduct.name"
-                            addon-left-icon="fas fa-edit">
-                        </base-input>
-                    </div>
-                    <div class="col-md-4">
-                        <a-select v-model="dataProduct.category" class="w-100 mt-1" style="height:40px;">
-                            <a-select-option v-for="category in categories" :key="category._id" :value="category.name">
-                                {{category.name}}
-                            </a-select-option>
-                        </a-select>
-                    </div>
-                    <div class="col-md-2">
-                        <base-button class="w-100" v-on:click="modals.modal6 = true" type="success">
-                            Filtros
-                        </base-button>
-                    </div>
-                    <div class="col-md-2">
-                        <base-button class="ml-2 w-100" v-on:click="modals.modal7 = true" type="success">
-                            Colores
-                        </base-button>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-3">
-                        <base-input 
-                            placeholder="Precio" 
-                            v-model="dataProduct.price"
-                            addon-left-icon="fas fa-dollar-sign">
-                        </base-input>
-                    </div>
-                    <div class="col-md-3">
-                        <base-input 
-                            placeholder="Cantidad" 
-                            v-model="dataProduct.quantify"
-                            addon-right-icon="fas fa-boxes">
-                        </base-input> 
-                    </div>
-                    <div class="col-md-3">
-                        <base-input 
-                            placeholder="Descuento"
-                            v-model="dataProduct.discount"
-                            addon-right-icon="fas fa-percentage">
-                        </base-input>
-                    </div>
-                    <div class="col-md-3 mt-1">
-                        <base-button v-on:click="dataProduct.freeShiping = false" v-if="dataProduct.freeShiping" size="sm" type="success">Envio gratis activado</base-button>
-                        <base-button v-on:click="dataProduct.freeShiping = true" v-else size="sm" type="danger">Envio gratis desactivado</base-button>
-                    </div>
-                </div>
-                <textarea class="form-control" rows="3" v-model="dataProduct.description" placeholder="Descripción del producto"></textarea>
-                <template slot="footer">
-                    <base-button type="success" v-on:click="newProductData">Agregar</base-button>
-                    <base-input class="w-75 mt-4" style="margin-right:10em;" v-model="dataProduct.dataAdd" placeholder="Agregar dato descriptivo"></base-input>
-                    <base-button v-on:click="addProduct()" type="primary">Crear</base-button>
-                </template>
-                <a-table class="mt-1" bordered :data-source="dataProduct.data" :columns="columns">
-                    <template slot="dato" slot-scope="text, record">
-                        <a-input v-model="record.data" placeholder="Dato del producto" />
-                    </template>
-                    <template slot="operation" slot-scope="text, record">
-                        <base-button v-on:click="newProductDataDelete(record.id)" type="danger">Eliminar</base-button>
-                    </template>
-                </a-table>
-            </modal>
-            <modal :show.sync="modals.modal6" modal-classes="modal-md">
-                <h4 slot="header" class="modal-title" id="modal-title-default">Filtros</h4>
-                <div class="w-100">
-                    <a-table ref="tableFilters" bordered :data-source="filtersProduct" :columns="columnsFilters">
-                        <template slot="operation" slot-scope="text, record, index">
-                            <a-tooltip placement="left">
-                                <template slot="title">
-                                    <span>Activar</span>
-                                </template>
-                                <base-button size="sm" v-if="record.valid" v-on:click="removeFilterProduct(index)" type="success"><i class="ni ni-check-bold"></i></base-button>
-                                <base-button size="sm" v-else v-on:click="addFilterProduct(index)" type="danger"><i class="ni ni-fat-remove"></i></base-button>
-                            </a-tooltip>
-                        </template>
-                        <template slot="selectOptions" slot-scope="text, record, index">
-                            <template v-for="(options, indexOpt) of record.options">
-                                <a-tooltip v-if="record.valid" :key="options.name" placement="top">
-                                    <template slot="title">
-                                        <span v-if="options.active">Quitar opción</span>
-                                        <span v-else>Agregar opción</span>
-                                    </template>
-                                    <badge v-if="options.active" style="font-size:1em !important;cursor:pointer;" class="text-default mt-1 mr-2 mb-2" type="success">
-                                        <span v-on:click="removeOptionProduct(record.name, options.name, indexOpt, index)">{{options.name}}</span>
-                                    </badge>
-                                    <badge v-else style="font-size:1em !important;cursor:pointer;" class="text-default mt-1 mr-2 mb-2" type="danger">
-                                        <span v-on:click="addOptionProduct(record.name, options.name, indexOpt, index)">{{options.name}}</span>
-                                    </badge>
-                                </a-tooltip>
-                            </template>
-                        </template>
-                    </a-table>
-                </div>
-            </modal>
-            <modal :show.sync="modals.modal7" modal-classes="modal-md">
-                <h4 slot="header" class="modal-title" id="modal-title-default">Colores</h4>
-                <div class="row mb-2 mt-2">
-                    <div class="col-md-6">
-                        <color-picker
-                            :color="color"
-                            :sucker-hide="false"
-                            :sucker-canvas="suckerCanvas"
-                            :sucker-area="suckerArea"
-                            @changeColor="changeColor"
-                            @openSucker="openSucker"
-                        />
-                        <base-button class="ml-2" type="success" v-on:click="onColorSelect()">
-                        Seleccionar color</base-button>
-                    </div>
-                    <div class="col-md-6 row">
-                        <h3 class="ml-2">Colores selecionados</h3>
-                        <span v-for="(color, index) of dataProduct.colors" :key="color" class="colorsSelectds col-md-2 mb-0" :style="'background-color:'+color" v-on:click="removeColor(index)">coll</span>
-                    </div>
-                </div>
             </modal>
             <modal :show.sync="modals.modal5" modal-classes="modal-md" :showClose="false">
                 <h4 slot="header" class="modal-title" id="modal-title-default">Filtros</h4>
@@ -287,7 +364,7 @@
                 :columns="columnsProducts"
                 :data-source="products"
                 :pagination="{ pageSize: 20 }"
-                :scroll="{ y: 400 }">
+                :scroll="getScreen">
                     <template slot="accion" slot-scope="text, record, index">
                         <div class="row">
                            <a-tooltip placement="bottom">
@@ -298,13 +375,19 @@
                             </a-tooltip>
                             <a-tooltip placement="left">
                                 <template slot="title">
-                                <span>Activar / Desactivar producto</span>
+                                    <span v-if="record.active">Activado</span>
+                                    <span v-else>Desactivado</span>
                                 </template>
                                 <base-button size="sm" v-if="record.active" @click="changeActive(index)" type="success"><i class="ni ni-check-bold"></i></base-button>
-                                <base-button size="sm" v-else @click="changeActive(index)" type="danger"><i class="ni ni-fat-remove"></i></base-button>
+                                <base-button size="sm" v-else @click="changeActive(index)" type="warning"><i class="ni ni-fat-remove"></i></base-button>
+                            </a-tooltip> 
+                            <a-tooltip placement="left">
+                                <template slot="title">
+                                    <span>Eliminar</span>
+                                </template>
+                                <base-button size="sm" @click="deleteProduct(record._id)" type="danger"><i class="ni ni-fat-remove"></i></base-button>
                             </a-tooltip> 
                         </div>
-                        
                     </template>
                     <template slot="price" slot-scope="text">
                         $ {{formatPrice(text)}}
@@ -353,7 +436,9 @@ export default {
                 modal4: false,
                 modal5: false,
                 modal6: false,
-                modal7: false
+                modal7: false,
+                modal8: false,
+                modal9: false
             },
             descripcionProductoEdit:'',
             categories:[],
@@ -449,13 +534,11 @@ export default {
             columnsProducts: [
                 {
                     title: 'Nombre del producto',
-                    dataIndex: 'name',
-                    width: 350,
+                    dataIndex: 'name'
                 },
                 {
                     title: 'Categoria',
-                    dataIndex: 'category',
-                    width: 220,
+                    dataIndex: 'category'
                 },
                 {
                     title: 'Precio',
@@ -468,13 +551,16 @@ export default {
                 },
                 {
                     title: 'Acciones',
-                    scopedSlots: { customRender: 'accion' },
-                    width: 130
+                    scopedSlots: { customRender: 'accion' }
                 },
             ],
             previewVisible: false,
             previewImage: '',
-            filtersProduct: []
+            previewVisibleEdit: false,
+            previewImageEdit: '',
+            filtersProduct: [],
+            filtersProductEdit: [],
+            uploadTarget: endPoint.endpointTarget
         }
     },
     beforeCreate(){
@@ -504,7 +590,41 @@ export default {
                     this.filtersProduct[index].valid = false     
                 }
                 console.log(this.filtersProduct)
+
             })
+        },
+        setFilters(filters){
+            this.filtersProductEdit = []
+            console.log(filters)
+            console.log(this.filtersProduct)
+            for (let index = 0; index < this.filtersProduct.length; index++) {
+                const element = this.filtersProduct[index];
+                var entry = true
+                for (let i = 0; i < filters.length; i++) {
+                    const elementTwo = filters[i];
+                    if (element.name == elementTwo.name){
+                        entry = false
+                        element.valid = true
+                        for (let r = 0; r < element.options.length; r++) {
+                            const elementThree = element.options[r];
+                            for (let j = 0; j < elementTwo.options.length; j++) {
+                                const elementFour = elementTwo.options[j];
+                                if (elementThree.name == elementFour) {
+                                    elementThree.active = true
+                                }
+                            }
+                        }
+                        this.filtersProductEdit.push(element)
+                    }
+                }
+                if (entry) {
+                    this.filtersProductEdit.push(element)
+                }
+            }
+            this.modals.modal1 = false
+            this.modals.modal9 = true
+            this.getFilters()
+            console.log(this.filtersProductEdit)
         },
         getCategories(){
             axios.get(endPoint.endpointTarget+'/categories', this.configHeader)
@@ -522,7 +642,20 @@ export default {
             })
         },
         handleCancel() {
-            this.previewVisible = false;
+            this.previewVisible = false
+            this.modals.modal3 = true
+        },
+        handleCancelEdit() {
+            this.previewVisibleEdit = false
+            this.modals.modal1 = true
+        },
+        handleCancelColors(){
+            this.modals.modal7 = false
+            this.modals.modal3 = true
+        },
+        handleCancelColorsEdit(){
+            this.modals.modal8 = false
+            this.modals.modal1 = true       
         },
         changeColor(color) {
             this.color = color
@@ -530,6 +663,9 @@ export default {
         },
         onColorSelect(){
             this.dataProduct.colors.push(this.color.hex)
+        },
+        onColorSelectEdit(){
+            this.products[this.actualProduct].colors.push(this.color.hex)
         },
         openSucker(isOpen) {
             if (isOpen) {
@@ -543,6 +679,9 @@ export default {
         removeColor(index){
             this.dataProduct.colors.splice(index, 1)
         },
+        removeColorEdit(index){
+            this.products[this.actualProduct].colors.splice(index, 1)
+        },
         addOptionProduct(name, optName, indexOpt, index){
             this.filtersProduct[index].options[indexOpt].active = true
             for (let i = 0; i < this.dataProduct.filters.length; i++) {
@@ -554,6 +693,18 @@ export default {
             this.filtersProduct.push({})
             this.filtersProduct.splice(this.filtersProduct.length - 1, 1)
             console.log(this.dataProduct)
+        },
+        addOptionProductEdit(name, optName, indexOpt, index){
+            this.filtersProductEdit[index].options[indexOpt].active = true
+            for (let i = 0; i < this.products[this.actualProduct].filters.length; i++) {
+                const element = this.products[this.actualProduct].filters[i];
+                if (element.name == name) {
+                    element.options.push(optName)
+                }
+            }
+            this.filtersProductEdit.push({})
+            this.filtersProductEdit.splice(this.filtersProductEdit.length - 1, 1)
+            console.log(this.products[this.actualProduct].filters)
         },
         removeOptionProduct(name, optName, indexOpt, index){
             this.filtersProduct[index].options[indexOpt].active = false
@@ -570,7 +721,31 @@ export default {
             }
             this.filtersProduct.push({})
             this.filtersProduct.splice(this.filtersProduct.length - 1, 1)
-            console.log(this.dataProduct)
+        },
+        removeOptionProductEdit(name, optName, indexOpt, index){
+            this.filtersProductEdit[index].options[indexOpt].active = false
+            for (let i = 0; i < this.products[this.actualProduct].filters.length; i++) {
+                const element = this.products[this.actualProduct].filters[i];
+                if (element.name == name) {
+                    for (let r = 0; r < element.options.length; r++) {
+                        const elementTwo = element.options[r];
+                        if (elementTwo == optName) {
+                            element.options.splice(r, 1)
+                        }
+                    }
+                }
+            }
+            this.filtersProductEdit.push({})
+            this.filtersProductEdit.splice(this.filtersProductEdit.length - 1, 1)
+            console.log(this.products[this.actualProduct].filters)
+        },
+        handleCancelFilter(){
+            this.modals.modal6 = false
+            this.modals.modal3 = true
+        },
+        handleCancelFilterEdit(){
+            this.modals.modal9 = false
+            this.modals.modal1 = true
         },
         addFilterProduct(index){
             console.log(index)
@@ -579,6 +754,13 @@ export default {
             this.filtersProduct.splice(this.filtersProduct.length - 1, 1)
             this.dataProduct.filters.push({name: this.filtersProduct[index].name, options: []})
             console.log(this.$refs.tableFilters)
+        },
+        addFilterProductEdit(index){
+            this.filtersProductEdit[index].valid = true
+            this.filtersProductEdit.push({})
+            this.filtersProductEdit.splice(this.filtersProductEdit.length - 1, 1)
+            this.products[this.actualProduct].filters.push({name: this.filtersProduct[index].name, options: []})
+            console.log(this.products[this.actualProduct].filters)
         },
         removeFilterProduct(index){
             this.filtersProduct[index].valid = false
@@ -592,12 +774,40 @@ export default {
             this.filtersProduct.splice(this.filtersProduct.length - 1, 1)
             console.log(this.$refs.tableFilters)
         },
+        removeFilterProductEdit(index){
+            for (let i = 0; i < this.filtersProductEdit[index].options.length; i++) {
+                const element = this.filtersProductEdit[index].options[i];
+                element.active = false
+            }
+            this.filtersProductEdit[index].valid = false
+            for (let i = 0; i < this.products[this.actualProduct].filters.length; i++) {
+                const element = this.products[this.actualProduct].filters[i];
+                if (element.name == this.filtersProduct[index].name) {
+                    this.products[this.actualProduct].filters.splice(i, 1)
+                }
+            }
+            this.filtersProductEdit.push({})
+            this.filtersProductEdit.splice(this.filtersProductEdit.length - 1, 1)
+            console.log(this.products[this.actualProduct].filters)
+            console.log(this.$refs.tableFilters)
+        },
         async handlePreview(file) {
+            console.log(file)
             if (!file.url && !file.preview) {
                 file.preview = await getBase64(file.originFileObj);
             }
             this.previewImage = file.url || file.preview;
             this.previewVisible = true;
+            this.modals.modal3 = false
+        },
+        async handlePreviewEdit(file) {
+            console.log(file)
+            if (!file.url && !file.preview) {
+                file.preview = await getBase64(file.originFileObj);
+            }
+            this.previewImageEdit = file.url || file.preview;
+            this.previewVisibleEdit = true;
+            this.modals.modal1 = false
         },
         addNewImage({ fileList }) {
             this.dataProduct.imagesArray = fileList;
@@ -618,10 +828,12 @@ export default {
             this.dataProduct.data.splice(id, 1)
         },
         editProductDataDelete(id){
+            console.log(id)
             this.products[this.actualProduct].data.splice(id, 1)
         },
         productDataEdit() {
             this.products[this.actualProduct].data.push({id:this.products[this.actualProduct].data.length, name:this.descripcionProductoEdit, data:''})
+            this.descripcionProductoEdit = ''
         },
         filterDelete(id){
             axios.delete(endPoint.endpointTarget+'/filters/'+id, this.configHeader)
@@ -634,7 +846,7 @@ export default {
                         position: 'top-end',
                         timer: 3000,
                         timerProgressBar: true,
-                        title: 'Filtro eliminado con exito',
+                        title: 'Filtro eliminado con éxito',
                         showConfirmButton: false,
                         didOpen: (toast) => {
                             toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -667,7 +879,7 @@ export default {
                         position: 'top-end',
                         timer: 3000,
                         timerProgressBar: true,
-                        title: 'Filtro editado con exito',
+                        title: 'Filtro editado con éxito',
                         showConfirmButton: false,
                         didOpen: (toast) => {
                             toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -704,7 +916,7 @@ export default {
                         position: 'top-end',
                         timer: 3000,
                         timerProgressBar: true,
-                        title: 'Filtro creado con exito',
+                        title: 'Filtro creado con éxito',
                         showConfirmButton: false,
                         didOpen: (toast) => {
                             toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -905,7 +1117,9 @@ export default {
                     price:this.products[e].price,
                     active:this.products[e].active,
                     discount:this.products[e].discount,
-                    images:this.products[e].images
+                    images:this.products[e].images,
+                    colors: this.products[e].colors,
+                    filters: this.products[e].filters
                 },this.configHeader)
                 .then(res => {
                     this.$swal({
@@ -915,7 +1129,7 @@ export default {
                         position: 'top-end',
                         timer: 3000,
                         timerProgressBar: true,
-                        title: 'El producto fue editado con exito',
+                        title: 'El producto fue editado con éxito',
                         showConfirmButton: false,
                         didOpen: (toast) => {
                             toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -934,7 +1148,7 @@ export default {
             console.log("aja?")
             axios.get(endPoint.endpointTarget+'/products/changeActive/'+this.products[i]._id, this.configHeader)
             .then(res => {
-                this.statusEdit[i].status = true
+                this.products[i].active = res.data.status
                 this.activeDisabled = false
                 localStorage.setItem('userToken', res.data.token)
                 this.getProduct()
@@ -949,11 +1163,36 @@ export default {
                 this.dataProduct.valid = true
             }
         },
-        deleteProduct(i){
-            axios.delete(endPoint.endpointTarget+'/products/'+this.products[i]._id,this.configHeader)
-            .then(res => {
-                localStorage.setItem('userToken', res.data.token)
-                this.getProduct()
+        deleteProduct(id){
+            this.$swal({
+                icon: 'info',
+                title: '¿Seguro que quieres eliminar esta promoción?',
+                showCancelButton: true,
+                cancelButtonText: 'Cancelar',
+                showConfirmButton: true,
+                confirmButtonText: 'Seguro'
+            }).then(result => {
+                if (result.isConfirmed == true) {
+                    axios.delete(endPoint.endpointTarget+'/products/'+id, this.configHeader)
+                    .then(res => {
+                        this.$swal({
+                            type: 'success',
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            title: 'El producto fue eliminado con éxito',
+                            showConfirmButton: false,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        })
+                        localStorage.setItem('userToken', res.data.token)
+                        this.getProduct()
+                    })
+                }
             })
         },
         formatPrice(value) {
@@ -961,6 +1200,11 @@ export default {
             return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
         },
         
+    },
+    computed: {
+        getScreen: () => {
+            return screen.width < 780 ? { x: 'calc(700px + 50%)', y: 240 } : { y: 240 }
+        }
     }
 }
 </script>
@@ -998,12 +1242,12 @@ button:focus{
 }
 .colorsSelectds{
     width: 80px;
-    height: 30px !important;
-    border-radius: 50%;
+    height: 35px !important;
+    border-radius: 48%;
     margin-left: 10px;
     color: transparent;
     cursor: pointer;
-    box-shadow: 0 0 2rem 0 rgba(136, 152, 170, 0.15) !important;
+    box-shadow: 0 0 2rem 0 rgba(136, 152, 170, 0.9) !important;
 }
 .colorsSelectds:hover{
     opacity: .6;

@@ -13,13 +13,14 @@
                 </template>
                <base-button type="danger" style="cursor: not-allowed;" class="mb-3">Añadir promocion</base-button> 
             </a-tooltip>
+            <base-button type="success" class="mb-3" @click="modals.modal3 = true">Configurar correo</base-button>
             <modal :show.sync="modals.modal1" modal-classes="modal-lg">
                 <h6 slot="header" class="modal-title" id="modal-title-default">Datos descriptivos de tu producto</h6>
                 <div class="row">
                     <div class="col-md-5"></div>
                     <div class="col-md-2 mx-auto">
                         <a-upload
-                        action="http://localhost:3200/promotions/uploadImage"
+                        :action="uploadTarget+'/promotions/uploadImage'"
                         list-type="picture-card"
                         :file-list="promotionDataEdit.img"
                         @preview="handlePreviewEdit"
@@ -47,12 +48,12 @@
                 <base-button class="mt-3 mx-auto mb-2" v-on:click="editPromotion()" type="default">Editar promoción</base-button>
             </modal>
             <modal :show.sync="modals.modal2" modal-classes="modal-lg">
-                <h6 slot="header" class="modal-title" id="modal-title-default">Categorias</h6>
+                <h6 slot="header" class="modal-title" id="modal-title-default">Promoción</h6>
                 <div class="row">
                     <div class="col-md-5"></div>
                     <div class="col-md-2 mx-auto">
                         <a-upload
-                        action="http://localhost:3200/promotions/uploadImage"
+                        :action="uploadTarget+'/promotions/uploadImage'"
                         list-type="picture-card"
                         :file-list="promotionData.img"
                         @preview="handlePreview"
@@ -61,7 +62,7 @@
                         <div v-if="promotionData.img.length < 1">
                             <a-icon type="plus" />
                             <div class="ant-upload-text">
-                            Upload
+                            Imagen de promoción
                             </div>
                         </div>
                         </a-upload>
@@ -79,18 +80,66 @@
                 <textarea class="form-control" rows="3" v-model="promotionData.description" placeholder="Descripción de la promoción"></textarea>
                 <base-button class="mt-3 mx-auto mb-2" v-on:click="createPromotion()" type="default">Crear promoción</base-button>
             </modal>
-            <a-table :columns="columns" :data-source="promotions">
+            <modal :show.sync="modals.modal3" modal-classes="modal-lg">
+                <h6 slot="header" class="modal-title" id="modal-title-default">Configuración de correo</h6>
+                <card type="secondary" shadow
+                  header-classes="bg-white"
+                  body-classes=""
+                  class="border-0 pt-0">
+                    <div class="row">
+                        <div class="col-md-5"></div>
+                        <div class="col-md-2 mx-auto">
+                            <a-upload
+                                :action="uploadTarget+'/mails/uploadImage'"
+                                list-type="picture-card"
+                                :file-list="mailData.img"
+                                @preview="handlePreviewMail"
+                                @change="handleChangeMail">
+                                <div v-if="mailData.img.length < 1">
+                                    <a-icon type="plus" />
+                                    <div class="ant-upload-text">
+                                        Cargue su logo
+                                    </div>
+                                </div>
+                            </a-upload>
+                        </div>
+                        <div class="col-md-5"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4"><base-input v-model="mailData.mail" placeholder="Correo de la marca"></base-input></div>
+                        <div class="col-md-4"><base-input v-model="mailData.website" placeholder="Sitio web de la marca"></base-input></div>
+                        <div class="col-md-4"><base-input v-model="mailData.facebook"  placeholder="Dirección de facebook"></base-input></div>
+                        <div class="col-md-4"><base-input v-model="mailData.instagram" placeholder="Dirección de instagram"></base-input></div>
+                        <div class="col-md-4"><base-input v-model="mailData.twitter" placeholder="Dirección de twitter"></base-input></div>
+                        <div class="col-md-4"><base-input v-model="mailData.whatsapp" placeholder="Dirección de whatsapp"></base-input></div>
+                    </div>
+                </card>
+                <base-button v-if="ifMailCreate" class="mt-2 mb-2" v-on:click="editMail()" type="success">Editar datos</base-button>
+                <base-button v-else class="mt-2 mb-2" v-on:click="registerMail()" type="default">Crear datos de correo</base-button>
+            </modal>
+            <a-modal :visible="previewVisibleMail" :footer="null" @cancel="handleCancelMail">
+                <img alt="example" style="width: 100%" :src="previewImageMail" />
+            </a-modal>
+            <a-table :columns="columns" :data-source="promotions" :scroll="getScreen">
                 <a slot="name" slot-scope="text">{{ text }}</a>
                 <span slot="url" slot-scope="text"> <a :href="text" target="_blank" rel="">{{text}}</a></span>
                 
                 <span slot="action" slot-scope="text, record">
-                    <base-button @click="modals.modal1 = true,promotionDataEdit.name=record.name,promotionDataEdit.description=record.description,promotionDataEdit.bName = record.nameButton,promotionDataEdit.img=record.image,promotionDataEdit.url=record.url,promotionDataEdit.id=record._id" type="default">Editar</base-button>
-                    <base-button type="danger" v-on:click="deletePromotion(record._id)">eliminar</base-button>
+                    <a-tooltip placement="left">
+                        <template slot="title">
+                            <span>Editar</span>
+                        </template>
+                        <base-button size="sm" @click="modals.modal1 = true,promotionDataEdit.name=record.name,promotionDataEdit.description=record.description,promotionDataEdit.bName = record.nameButton,promotionDataEdit.img=record.image,promotionDataEdit.url=record.url,promotionDataEdit.id=record._id" type="success"><i class="ni ni-ruler-pencil"></i></base-button>
+                    </a-tooltip>
+                    <a-tooltip placement="right">
+                        <template slot="title">
+                            <span>Eliminar</span>
+                        </template>
+                        <base-button size="sm" type="danger"><i class="ni ni-fat-remove" v-on:click="deletePromotion(record._id)"></i></base-button>
+                    </a-tooltip>
                 </span>
             </a-table>
-            
         </div>
-        
     </div>
 </template>
 <script>
@@ -119,7 +168,8 @@ export default {
         return {
             modals: {
                 modal1:false,
-                modal2:false
+                modal2:false,
+                modal3: false
             },
             promotions:[],
             configHeader: {headers:{"x-database-connect":endPoint.dataBase,"x-access-token":localStorage.userToken}},
@@ -129,6 +179,16 @@ export default {
                 img:[],
                 bName:'',
                 url:''
+            },
+            ifMailCreate: false,
+            mailData: {
+                img: [],
+                mail: '',
+                website: '',
+                facebook: '',
+                instagram: '',
+                twitter: '',
+                whatsapp: '',
             },
             promotionDataEdit: {
                 name:'',
@@ -140,6 +200,7 @@ export default {
             },
             hasImage: false,
             image: null,
+            uploadTarget: endPoint.endpointTarget,
             columns: [
                 {
                     title: 'Nombre',
@@ -171,6 +232,8 @@ export default {
                     scopedSlots: { customRender: 'action' },
                 },
             ],
+            previewImageMail: '',
+            previewVisibleMail: false,
             previewVisible: false,
             previewImage: '',
             previewVisibleEdit: false,
@@ -193,6 +256,7 @@ export default {
     },
     created(){
         this.getPromotions()
+        this.getMail()
     },
     methods: {
         getPromotions(){
@@ -204,9 +268,128 @@ export default {
                 }
             })
         },
+        getMail(){
+            axios.get(endPoint.endpointTarget+'/mails/ifMail', this.configHeader)
+            .then(res => {
+                if (res.data.status == 'mail exist') {
+                    this.ifMailCreate = true
+                    this.mailData = res.data.mailData
+                }else{
+                    this.ifMailCreate = false
+                }
+                console.log(this.mailData)
+                console.log(this.ifMailCreate)
+            })
+            .catch(err => {
+                console.log(err)
+            })
+        },
+        registerMail(){
+            let images = []
+            let validation = true
+            if (this.mailData.img[0].status == "error") {
+                validation = false
+                this.$swal({
+                    type: 'error',
+                    icon: 'error',
+                    title: 'La imágen no se subio correctamente por favor verifique la imagen resaltada en rojo elimínela y agrégela de nuevo',
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }
+            if (validation) {
+                images.push({uid:this.mailData.img[0].uid, name:this.mailData.img[0].response.name, status:this.mailData.img[0].response.status, url:this.mailData.img[0].response.url})
+                axios.post(endPoint.endpointTarget+'/mails',{
+                    mail: this.mailData.mail,
+                    website: this.mailData.website,
+                    facebook: this.mailData.facebook,
+                    instagram: this.mailData.instagram,
+                    twitter: this.mailData.twitter,
+                    whatsapp: this.mailData.whatsapp,
+                    img: images
+                },this.configHeader)
+                .then(res => {
+                    if (res.data.status == 'mail register') {
+                        this.$swal({
+                            type: 'success',
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            title: 'Datos de correo creado',
+                            showConfirmButton: false,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        })
+                        localStorage.setItem('userToken', res.data.token)
+                        this.getMail()
+                    }
+                })
+            }
+        },
+        editMail(){
+            console.log(this.mailData)
+            let images = []
+            let validation = true
+            if (this.mailData.img[0].status == "error") {
+                validation = false
+                this.$swal({
+                    type: 'error',
+                    icon: 'error',
+                    title: 'La imágen no se subio correctamente por favor verifique la imagen resaltada en rojo elimínela y agrégela de nuevo',
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }
+            if (validation) {
+                if (this.mailData.img[0].response) {
+                    images.push({uid:this.mailData.img[0].uid, name:this.mailData.img[0].response.name, status:this.mailData.img[0].response.status, url:this.mailData.img[0].response.url})
+                }else{
+                    images = this.mailData.img
+                }
+                console.log(images)
+                axios.put(endPoint.endpointTarget+'/mails/'+this.mailData._id,{
+                    mail: this.mailData.mail,
+                    website: this.mailData.website,
+                    facebook: this.mailData.facebook,
+                    instagram: this.mailData.instagram,
+                    twitter: this.mailData.twitter,
+                    whatsapp: this.mailData.whatsapp,
+                    img: images
+                }, this.configHeader)
+                .then(res => {
+                    if (res.data.status == 'mail edit') {
+                        this.$swal({
+                            type: 'success',
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            title: 'Datos de correo editados',
+                            showConfirmButton: false,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        })
+                        localStorage.setItem('userToken', res.data.token)
+                        this.getMail()
+                    }
+                })
+            }
+        },
         handleCancel() {
             this.previewVisible = false;
             this.modals.modal2 = true
+        },
+        handleCancelMail() {
+            this.previewVisibleMail = false;
+            console.log('modal 3')
+            this.modals.modal3 = true 
         },
         handleCancelEdit() {
             this.previewVisibleEdit = false;
@@ -221,6 +404,15 @@ export default {
             this.previewVisible = true;
             this.modals.modal2 = false
         },
+        async handlePreviewMail(file) {
+            
+            if (!file.url && !file.preview) {
+                file.preview = await getBase64(file.originFileObj);
+            }
+            this.previewImageMail = file.url || file.preview;
+            this.previewVisibleMail = true;
+            this.modals.modal3 = false
+        },
         async handlePreviewEdit(file) {
             
             if (!file.url && !file.preview) {
@@ -234,6 +426,10 @@ export default {
             this.promotionData.img = fileList;
             
         },
+        handleChangeMail({ fileList }) {
+            this.mailData.img = fileList;
+            
+        },
         handleChangeEdit({ fileList }) {
             this.promotionDataEdit.img = fileList;
             
@@ -245,72 +441,72 @@ export default {
         createPromotion(){
             let images = []
             let validation = true
-                if (this.promotionData.img[0].status == "error") {
-                    validation = false
-                    this.$swal({
-                        type: 'error',
-                        icon: 'error',
-                        title: 'La imágen no se subio correctamente por favor verifique la imagen resaltada en rojo elimínela y agrégela de nuevo',
-                        showConfirmButton: false,
-                        timer: 1500
-                    })
-                }
-                if (validation) {
-                    images.push({uid:this.promotionData.img[0].uid,name:this.promotionData.img[0].response.name,status:this.promotionData.img[0].response.status,url:this.promotionData.img[0].response.url})
-                    axios.post(endPoint.endpointTarget+'/promotions',{
-                        name:this.promotionData.name,
-                        image:images,
-                        description:this.promotionData.description,
-                        url:this.promotionData.url,
-                        nameButton:this.promotionData.bName,
-                    },this.configHeader)
-                    .then(res => {
-                        if (res.data.status == 'promotion create') {
-                           this.$swal({
-                                type: 'success',
-                                icon: 'success',
-                                toast: true,
-                                position: 'top-end',
-                                timer: 3000,
-                                timerProgressBar: true,
-                                title: 'Promoción creada con éxito',
-                                showConfirmButton: false,
-                                didOpen: (toast) => {
-                                    toast.addEventListener('mouseenter', Swal.stopTimer)
-                                    toast.addEventListener('mouseleave', Swal.resumeTimer)
-                                }
-                            })
-                            this.modals.modal2 = false
-                            this.promotionData.name = ''
-                            this.promotionData.description = ''
-                            this.promotionData.url = ''
-                            this.promotionData.bName = ''
-                            this.promotionData.img = []
-                            localStorage.setItem('userToken', res.data.token)
-                            this.getPromotions() 
-                        }
-                        if (res.data.status == 'promotion exist') {
-                            this.$swal({
-                                type: 'error',
-                                icon: 'error',
-                                timer: 3000,
-                                timerProgressBar: true,
-                                title: 'Esta promocion ya existe',
-                                showConfirmButton: false,
-                                didOpen: (toast) => {
-                                    toast.addEventListener('mouseenter', Swal.stopTimer)
-                                    toast.addEventListener('mouseleave', Swal.resumeTimer)
-                                }
-                            })
-                        }
-                        
-                        
-                    })
-                }
-                
-            
-
-
+            if (this.promotionData.img[0].status == "error") {
+                validation = false
+                this.$swal({
+                    type: 'error',
+                    icon: 'error',
+                    title: 'La imágen no se subio correctamente por favor verifique la imagen resaltada en rojo elimínela y agrégela de nuevo',
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }
+            if (validation) {
+                images.push({uid:this.promotionData.img[0].uid,name:this.promotionData.img[0].response.name,status:this.promotionData.img[0].response.status,url:this.promotionData.img[0].response.url})
+                axios.post(endPoint.endpointTarget+'/promotions',{
+                    name:this.promotionData.name,
+                    image:images,
+                    description:this.promotionData.description,
+                    url:this.promotionData.url,
+                    nameButton:this.promotionData.bName,
+                },this.configHeader)
+                .then(res => {
+                    if (res.data.status == 'promotion create') {
+                        this.$swal({
+                            type: 'success',
+                            icon: 'success',
+                            toast: true,
+                            position: 'top-end',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            title: 'Promoción creada con éxito',
+                            showConfirmButton: false,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        })
+                        this.modals.modal2 = false
+                        this.promotionData.name = ''
+                        this.promotionData.description = ''
+                        this.promotionData.url = ''
+                        this.promotionData.bName = ''
+                        this.promotionData.img = []
+                        localStorage.setItem('userToken', res.data.token)
+                        this.getPromotions() 
+                        axios.get(endPoint.endpointTarget+'/mails/mailPromotions/'+res.data.id, this.configHeader)
+                        .then(res => {
+                            console.log(res)
+                        })
+                    }
+                    if (res.data.status == 'promotion exist') {
+                        this.$swal({
+                            type: 'error',
+                            icon: 'error',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            title: 'Esta promocion ya existe',
+                            showConfirmButton: false,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        })
+                    }
+                    
+                    
+                })
+            }
         },
         editPromotion(){
             let images = ''
@@ -425,6 +621,11 @@ export default {
                     })
                 }
             })
+        }
+    },
+    computed: {
+        getScreen: () => {
+            return screen.width < 780 ? { x: 'calc(700px + 50%)', y: 240 } : { y: 240 }
         }
     }
 }

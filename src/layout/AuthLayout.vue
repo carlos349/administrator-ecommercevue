@@ -38,8 +38,8 @@
                 <div class="header-body text-center mb-7">
                     <div class="row justify-content-center">
                         <div class="col-lg-5 col-md-6">
-                            <h1 class="text-white">Bienvenido!</h1>
-                            <p class="text-lead text-white">A traves de este sistema podras administrar tu sitio web!.</p>
+                            <h1 class="text-white">¡Bienvenido!</h1>
+                            <p class="text-lead text-white">A traves de este sistema podras administrar tu sitio web.</p>
                         </div>
                     </div>
                 </div>
@@ -62,20 +62,20 @@
                 <div class="row align-items-center justify-content-xl-between">
                     <div class="col-xl-6">
                         <div class="copyright text-center text-xl-left text-muted">
-                            &copy; {{year}} <a href="https://www.creative-tim.com" class="font-weight-bold ml-1"
+                            &copy; {{year}} <a href="http://syswa.net" class="font-weight-bold ml-1"
                                                target="_blank">SYSWA</a>
                         </div>
                     </div>
                     <div class="col-xl-6">
                         <ul class="nav nav-footer justify-content-center justify-content-xl-end">
                             <li class="nav-item">
-                                <a href="https://www.creative-tim.com" class="nav-link" target="_blank">SYSWA</a>
+                                <a href="http://syswa.net" class="nav-link" target="_blank">SYSWA</a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://www.creative-tim.com/presentation" class="nav-link" target="_blank">Nosotros</a>
+                                <a href="http://syswa.net/nosotros" class="nav-link" target="_blank">Nosotros</a>
                             </li>
                             <li class="nav-item">
-                                <a href="http://blog.creative-tim.com" class="nav-link" target="_blank">Instagram</a>
+                                <a href="https://www.instagram.com/syswanet/?hl=es-la" class="nav-link" target="_blank">Instagram</a>
                             </li>
                             
                         </ul>

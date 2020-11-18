@@ -12,9 +12,9 @@
             <li class="nav-item dropdown">
                 <base-dropdown class="nav-link pr-0">
                     <div class="media align-items-center" slot="title">
-                <span class="avatar avatar-sm rounded-circle">
-                  <img alt="Image placeholder" src="img/brand/logo.png">
-                </span>
+                        <span class="avatar avatar-sm rounded-circle">
+                          <img alt="Image placeholder" src="img/brand/logo.png">
+                        </span>
                         <div class="media-body ml-2 d-none d-lg-block">
                             <span class="mb-0 text-sm  font-weight-bold">Apiculturas Aleo</span>
                         </div>

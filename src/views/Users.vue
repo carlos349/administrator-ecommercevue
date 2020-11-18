@@ -7,11 +7,16 @@
         </base-header>
         <div class="container-fluid mt-5">
             <base-button class="mb-4" type="success" @click="modals.modal1 = true">Nuevo usuario</base-button>
-            <a-table :columns="columns" :data-source="users">
+            <a-table :columns="columns" :data-source="users" :scroll="getScreen">
                 <span slot="date" slot-scope="text, record">{{formatDate(record.createdAt)}}</span>
-                <span slot="action" slot-scope="text, record">
-                    <base-button type="danger" @click="deleteUser(record._id)">Eliminar</base-button>
-                </span>
+                <template slot="action" slot-scope="text, record">
+                    <a-tooltip placement="left">
+                        <template slot="title">
+                            <span>Eliminar</span>
+                        </template>
+                        <base-button size="sm" @click="deleteUser(record._id)" type="danger"><i class="ni ni-fat-remove"></i></base-button>
+                    </a-tooltip> 
+                </template>
             </a-table>
             <modal :show.sync="modals.modal1" modal-classes="modal-md">
                 <h4 slot="header" class="modal-title" id="modal-title-default">Registrar usuario</h4>
@@ -279,6 +284,11 @@ export default {
                     })
                 }
             })
+        }
+    },
+    computed: {
+        getScreen: () => {
+            return screen.width < 780 ? { x: 'calc(700px + 50%)', y: 240 } : { y: 240 }
         }
     }
 }

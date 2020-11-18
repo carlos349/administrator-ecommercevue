@@ -14,9 +14,10 @@
           }"
         /> -->
         <sidebar-item :link="{name: 'Usuarios', icon: 'ni ni-single-02 text-blue', path: '/usuarios'}"/>
+        <sidebar-item :link="{name: 'Clientes', icon: 'ni ni-single-02 text-blue', path: '/clientes'}"/>
         <sidebar-item :link="{name: 'Productos', icon: 'ni ni-bag-17 text-blue', path: '/productos'}"/>
         <sidebar-item :link="{name: 'Promociones', icon: 'ni ni-tag text-green', path: '/promociones'}"/>
-        <sidebar-item :link="{name: 'cotizaciones', icon: 'ni ni-collection text-green', path: '/cotizaciones'}"/>
+        <sidebar-item :link="{name: 'Cotizaciones', icon: 'ni ni-collection text-green', path: '/cotizaciones'}"/>
       </template>
     </side-bar>
     <div class="main-content" :data="sidebarBackground">
