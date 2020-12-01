@@ -58,7 +58,7 @@
             </modal>
             <modal :show.sync="modals.modal3" modal-classes="modal-lg">
                 <h6 slot="header" class="modal-title" id="modal-title-default">Crear nuevo producto</h6>
-                <div style="height: 110px;" class="ml-5">
+                <div class="ml-5 responsiveImage">
                     <a-upload
                     class="mx-auto uploaderProduct"
                     :action="uploadTarget+'/products/uploadImage'"
@@ -134,7 +134,7 @@
                     <base-input class="w-75 mt-4" v-model="dataProduct.dataAdd" placeholder="Agregar dato descriptivo"></base-input>
                     <base-button v-on:click="addProduct()" type="primary">Crear</base-button>
                 </template>
-                <a-table class="mt-1" bordered :data-source="dataProduct.data" :columns="columns">
+                <a-table class="mt-1" bordered :data-source="dataProduct.data" :scroll="getScreen" :columns="columns">
                     <template slot="dato" slot-scope="text, record">
                         <a-input v-model="record.data" placeholder="Dato del producto" />
                     </template>
@@ -255,7 +255,7 @@
             </a-modal>
             <modal :show.sync="modals.modal1" v-if="products.length > 0" modal-classes="modal-lg">
                 <h6 slot="header" class="modal-title" id="modal-title-default">Edita tu producto</h6>
-                <div style="height: 110px;" class="ml-5"> 
+                <div class="ml-5 responsiveImage"> 
                     <a-upload
                     class="mx-auto uploaderProduct"
                     :action="uploadTarget+'/products/uploadImage'"
@@ -327,7 +327,7 @@
                     </div>
                 </div>
                 <textarea class="form-control" rows="3" v-model="products[actualProduct].description" placeholder="Descripción del producto"></textarea>
-                <a-table class="mt-2" v-if="products.length > 0" bordered :data-source="products[actualProduct].data" :pagination="{ pageSize: 20 }" :scroll="{ y: 160 }" :columns="columns">
+                <a-table class="mt-2" v-if="products.length > 0" bordered :data-source="products[actualProduct].data" :pagination="{ pageSize: 20 }" :scroll="getScreen" :columns="columns">
                     <template slot="dato" slot-scope="text, record">
                         <a-input v-model="record.data" placeholder="Dato del producto"/>
                     </template>
@@ -337,7 +337,7 @@
                 </a-table>
                 <template slot="footer">
                     <base-button type="success" v-on:click="productDataEdit">Agregar</base-button>
-                    <base-input class="w-100 mt-4" style="margin-right:10em;" v-model="descripcionProductoEdit" placeholder="Agregar dato descriptivo"></base-input>
+                    <base-input class="w-75 mt-4" v-model="descripcionProductoEdit" placeholder="Agregar dato descriptivo"></base-input>
                     <base-button v-on:click="editProduct(actualProduct)" type="primary">Editar</base-button>
                 </template>
             </modal>
@@ -1254,5 +1254,14 @@ button:focus{
 }
 div .colors{
     display: none;
+}
+.responsiveImage{
+    height: 110px;
+    margin-bottom: 1%;
+}
+@media (max-width: 600px) {
+    .responsiveImage{
+        height: auto;
+    }
 }
 </style>

@@ -112,6 +112,8 @@
                         <div class="col-md-4"><base-input v-model="mailData.instagram" placeholder="Dirección de instagram"></base-input></div>
                         <div class="col-md-4"><base-input v-model="mailData.twitter" placeholder="Dirección de twitter"></base-input></div>
                         <div class="col-md-4"><base-input v-model="mailData.whatsapp" placeholder="Dirección de whatsapp"></base-input></div>
+                        <div class="col-md-6"><base-input v-model="mailData.companyname" placeholder="Nombre de la compañía"></base-input></div>
+                        <div class="col-md-6"><base-input v-model="mailData.location" placeholder="Link de google maps"></base-input></div>
                     </div>
                 </card>
                 <base-button v-if="ifMailCreate" class="mt-2 mb-2" v-on:click="editMail()" type="success">Editar datos</base-button>
@@ -189,6 +191,8 @@ export default {
                 instagram: '',
                 twitter: '',
                 whatsapp: '',
+                companyname: '',
+                location: ''
             },
             promotionDataEdit: {
                 name:'',
@@ -306,6 +310,8 @@ export default {
                     instagram: this.mailData.instagram,
                     twitter: this.mailData.twitter,
                     whatsapp: this.mailData.whatsapp,
+                    companyname: this.mailData.companyname,
+                    location: this.mailData.location,
                     img: images
                 },this.configHeader)
                 .then(res => {
@@ -358,6 +364,8 @@ export default {
                     instagram: this.mailData.instagram,
                     twitter: this.mailData.twitter,
                     whatsapp: this.mailData.whatsapp,
+                    companyname: this.mailData.companyname,
+                    location: this.mailData.location,
                     img: images
                 }, this.configHeader)
                 .then(res => {
